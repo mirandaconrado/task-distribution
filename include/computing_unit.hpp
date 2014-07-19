@@ -50,7 +50,7 @@ namespace TaskDistribution {
 #endif
 
     private:
-      ComputingUnit(bool) { }
+      ComputingUnit(size_t id) { id_ = id; }
 
       static ComputingUnit<T> internal_;
   };

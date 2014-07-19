@@ -14,7 +14,7 @@ namespace TaskDistribution {
     id_ = hasher(typeid(T).name());
 
     if (map_.find(id_) == map_.end())
-      map_[id_] = new ComputingUnit<T>(true);
+      map_[id_] = new ComputingUnit<T>(id_);
   }
 
 #if !(NO_MPI)
