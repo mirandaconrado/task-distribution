@@ -14,6 +14,21 @@ class TestComputingUnit: public TaskDistribution::ComputingUnit<TestComputingUni
 };
 const std::string TestComputingUnit::name("TestComputingUnit");
 
+TEST(ComputingUnit, ID) {
+  std::hash<std::string> hasher;
+  size_t id = hasher(typeid(TestComputingUnit).name());
+
+  EXPECT_EQ(nullptr, TestComputingUnit::get_by_id(id));
+
+  TestComputingUnit unit;
+
+  EXPECT_EQ(id, unit.get_id());
+
+  EXPECT_NE(&unit, TestComputingUnit::get_by_id(id));
+
+  EXPECT_EQ(id, TestComputingUnit::get_by_id(id)->get_id());
+}
+
 TEST(ComputingUnit, Defaults) {
   TestComputingUnit unit;
   EXPECT_FALSE(unit.run_locally());
