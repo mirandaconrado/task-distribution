@@ -23,8 +23,8 @@ namespace TaskDistribution {
     T obj;
     world.recv(0, 0, obj);
 
-    size_t task_hash;
-    world.recv(0, 0, task_hash);
+    size_t task_id;
+    world.recv(0, 0, task_id);
 
     typename T::args_type args;
     world.recv(0, 0, args);
@@ -32,7 +32,7 @@ namespace TaskDistribution {
     typename T::result_type res;
     res = obj(args);
 
-    world.send(0, 0, task_hash);
+    world.send(0, 0, task_id);
     world.send(0, 0, res);
   }
 #endif
