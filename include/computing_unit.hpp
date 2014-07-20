@@ -2,7 +2,6 @@
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 
 #if !(NO_MPI)
-#include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
 #endif
 #include <tuple>
