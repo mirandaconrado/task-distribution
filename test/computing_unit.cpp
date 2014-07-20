@@ -1,18 +1,6 @@
-#include "computing_unit.hpp"
+#include "test_computing_unit.hpp"
 
 #include <gtest/gtest.h>
-
-class TestComputingUnit: public TaskDistribution::ComputingUnit<TestComputingUnit> {
-  public:
-    typedef int result_type;
-    typedef std::tuple<int> args_type;
-    static const std::string name;
-
-    result_type operator()(args_type const& args) const {
-      return 2*std::get<0>(args);
-    }
-};
-const std::string TestComputingUnit::name("TestComputingUnit");
 
 TEST(ComputingUnit, ID) {
   std::hash<std::string> hasher;
