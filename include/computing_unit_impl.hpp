@@ -36,9 +36,6 @@ namespace TaskDistribution {
     world.send(0, 0, res);
   }
 #endif
-
-  template <class T>
-  ComputingUnit<T> ComputingUnit<T>::internal_;
 };
 
 #endif

@@ -51,8 +51,6 @@ namespace TaskDistribution {
 
     private:
       ComputingUnit(size_t id) { id_ = id; }
-
-      static ComputingUnit<T> internal_;
   };
 
   template <class T>
