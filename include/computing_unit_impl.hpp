@@ -13,11 +13,20 @@ namespace TaskDistribution {
     std::hash<std::string> hasher;
     id_ = hasher(typeid(T).name());
 
+    // If we don't already have this kind of Callable, create a copy to store at
+    // the map, so this one can be freed whenever the user chooses.
     if (map_.find(id_) == map_.end())
       map_[id_] = new ComputingUnit<T>(id_);
   }
 
 #if !(NO_MPI)
+  // In case of MPI, we must:
+  // 1) receive the member data for the Callable;
+  // 2) receive the task hash associated with this computation;
+  // 3) receive the arguments provided during task creation;
+  // 4) compute the result;
+  // 5) send the task hash to link the result and task;
+  // 6) send the result.
   template <class T>
   void ComputingUnit<T>::execute(boost::mpi::communicator& world) const {
     T obj;
