@@ -22,6 +22,7 @@
 // arguments are needed, then use a std::tuple.
 // 2) Only the return of operator() is considered as the result, so any changes
 // to the argument are ignored.
+// 3) Both result_type and args_type must be serializable through boost.
 //
 // Besides these requirements, the user has control over the following options:
 // 1) whether the object must run on the master node, chosen through the method
