@@ -17,6 +17,11 @@ class TestComputingUnit: public
       return val_*std::get<0>(args);
     }
 
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+      ar & val_;
+    }
+
   private:
     int val_;
 };
