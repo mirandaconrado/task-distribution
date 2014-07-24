@@ -23,6 +23,13 @@ TEST(ComputingUnit, Defaults) {
   EXPECT_TRUE(unit.should_save());
 }
 
+TEST(ComputingUnit, Call) {
+  TestComputingUnit unit(3);
+
+  for (int i = 0; i < 10; i++)
+    EXPECT_EQ(3*i, unit(std::make_tuple(i)));
+}
+
 TEST(ComputingUnit, Identity) {
   TaskDistribution::IdentityComputingUnit<int> unit;
   EXPECT_TRUE(unit.run_locally());
