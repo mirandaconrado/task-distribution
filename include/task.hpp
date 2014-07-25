@@ -110,7 +110,7 @@ namespace TaskDistribution {
 
       operator T() const {
         BOOST_ASSERT_MSG(task != nullptr, "task not created by a TaskManager");
-        return boost::any_cast<T>(task->call());
+        return *boost::any_cast<T*>(task->call());
       }
 
       T operator()() const {

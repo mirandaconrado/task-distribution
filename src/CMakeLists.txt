@@ -1,5 +1,6 @@
 add_library(task_distribution
   computing_unit.cpp
+  task.cpp
 )
 
 target_link_libraries(task_distribution

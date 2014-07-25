@@ -1,40 +1,32 @@
 #ifndef __TASK_DISTRIBUTION__TASK_IMPL_HPP__
 #define __TASK_DISTRIBUTION__TASK_IMPL_HPP__
 
+#include "computing_unit.hpp"
 #include "task.hpp"
 #include "task_manager.hpp"
 
 #include <boost/functional/hash.hpp>
 
 namespace TaskDistribution {
-  BaseTask::BaseTask(size_t id, TaskManager* task_manager):
-    on_memory_(false),
-    on_disk_(false),
-    id_(id),
-    task_manager_(task_manager),
-    parents_active_(0),
-    children_active_(0) { }
-
   template <class Unit, class Args>
   boost::any RealTask<Unit,Args>::call() {
-    if (on_memory_)
-      return *result_;
+    if (on_memory_ && result_ != nullptr)
+      return result_;
 
     if (on_disk_) {
-      typename Unit::result_type new_val;
-      on_memory_ = task_manager_->load(this, new_val);
-
       if (result_ != nullptr)
         delete result_;
-      result_ = new typename Unit::result_type(new_val);
+
+      result_ = new typename Unit::result_type();
+      on_memory_ = task_manager_->load(this, *result_);
 
       if (on_memory_)
-        return *result_;
+        return result_;
     }
 
     compute();
 
-    return *result_;
+    return result_;
   }
 
   template <class Unit, class Args>
@@ -74,23 +66,24 @@ namespace TaskDistribution {
 
 #if !(NO_MPI)
   template <class Unit, class Args>
-  bool RealTask<Unit,Args>::assign(mpi::communicator& world, size_t node) {
+  bool RealTask<Unit,Args>::assign(boost::mpi::communicator& world,
+      size_t node) {
     if (on_memory_ || on_disk_)
       return false;
 
     world.send(node, 0, ComputingUnit<Unit>().get_id());
-    world.send(node, 0, unit);
-    world.send(node, 0, id);
+    world.send(node, 0, computing_unit_);
+    world.send(node, 0, id_);
 
     typename Unit::args_type new_args;
-    tuple_convert(new_args, args);
+    tuple_convert(new_args, args_);
     world.send(node, 0, new_args);
     return true;
   }
 
   template <class Unit, class Args>
-  void
-  RealTask<Unit,Args>::receive_result(mpi::communicator& world, size_t node) {
+  void RealTask<Unit,Args>::receive_result(boost::mpi::communicator& world,
+      size_t node) {
     if (result_ != nullptr)
       delete result_;
 
@@ -107,7 +100,7 @@ namespace TaskDistribution {
   template <class Unit, class Args>
   void RealTask<Unit,Args>::compute() {
     typename Unit::args_type new_args;
-    tuple_convert(new_args, args);
+    tuple_convert(new_args, args_);
 
     if (result_ != nullptr)
       delete result_;
@@ -116,7 +109,7 @@ namespace TaskDistribution {
 
     on_memory_ = true;
     if (computing_unit_.should_save())
-      on_disk_ = task_manager_->save(this, *val_);
+      on_disk_ = task_manager_->save(this, *result_);
   }
 
   template <class Unit, class Args>
