@@ -1,9 +1,11 @@
 #ifndef __TASK_DISTRIBUTION__TASK_IMPL_HPP__
 #define __TASK_DISTRIBUTION__TASK_IMPL_HPP__
 
-#include "computing_unit.hpp"
 #include "task.hpp"
+
+#include "computing_unit.hpp"
 #include "task_manager.hpp"
+#include "tuple_convert.hpp"
 
 #include <boost/functional/hash.hpp>
 
