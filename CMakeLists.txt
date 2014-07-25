@@ -13,6 +13,7 @@ endif()
 
 set(CMAKE_CXX_COMPILER "clang++")
 include_directories(include)
+include_directories(lib/object-archive/include)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Werror")
