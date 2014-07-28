@@ -9,6 +9,7 @@
 
 #include <boost/predef.h>
 
+#include "archive_key.hpp"
 #include "object_archive.hpp"
 
 namespace TaskDistribution {
@@ -100,7 +101,7 @@ namespace TaskDistribution {
 
       void task_completed(BaseTask *task);*/
 
-      ObjectArchive<size_t> archive_;
+      ObjectArchive<ArchiveKey> archive_;
 
       /*std::unordered_map<size_t,BaseTask*> hash_map_;
 
