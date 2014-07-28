@@ -1,6 +1,6 @@
 add_library(task_distribution
-  computing_unit.cpp
-  task.cpp
+  #computing_unit.cpp
+  #task.cpp
   task_manager.cpp
 )
 

@@ -1,15 +1,14 @@
 #include "task_manager.hpp"
 
 namespace TaskDistribution {
-  TaskManager::TaskManager(std::string const& p, size_t max_buffer_size):
-    archive_(p, max_buffer_size),
-    last_print_(0) { }
+  TaskManager::TaskManager() { }
 
   TaskManager::~TaskManager() {
-    for (auto& it : hash_map_)
-      delete it.second;
+    /*for (auto& it : hash_map_)
+      delete it.second;*/
   }
 
+  /*
   void TaskManager::add_free_task(BaseTask* task) {
     if (task->parents_active_ == 0 && !task->on_disk_ && task->should_save()) {
       bool include = true;
@@ -254,5 +253,5 @@ namespace TaskDistribution {
 
   void TaskManager::clean() {
     archive_.clear();
-  }
+  }*/
 };

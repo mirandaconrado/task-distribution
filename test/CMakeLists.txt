@@ -8,7 +8,8 @@ else()
 endif()
 
 add_executable(run_tests.bin EXCLUDE_FROM_ALL
-  computing_unit.cpp
+  #computing_unit.cpp
+  task_manager.cpp
 )
 
 target_link_libraries(run_tests.bin gtest gtest_main
@@ -17,7 +18,8 @@ target_link_libraries(run_tests.bin gtest gtest_main
 
 if(NOT NO_MPI)
   add_executable(run_tests_mpi.bin EXCLUDE_FROM_ALL
-    computing_unit_mpi.cpp
+    #computing_unit_mpi.cpp
+    task_manager_mpi.cpp
     test_mpi_main.cpp
   )
 

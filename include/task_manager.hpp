@@ -1,11 +1,11 @@
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
-#if !(NO_MPI)
-#include <boost/mpi/communicator.hpp>
-#endif
-#include <fstream>
-#include <unordered_map>
+//#if !(NO_MPI)
+//#include <boost/mpi/communicator.hpp>
+//#endif
+//#include <fstream>
+//#include <unordered_map>
 
 #include "object_archive.hpp"
 
@@ -15,11 +15,11 @@ namespace TaskDistribution {
 
   class TaskManager {
     public:
-      TaskManager(std::string const& path, size_t max_buffer_size);
+      TaskManager();
 
       ~TaskManager();
 
-      template <class Unit, class... Args>
+      /*template <class Unit, class... Args>
       Task<typename Unit::result_type>
       new_task(Unit const& computing_unit, const Args& ... args);
 
@@ -50,10 +50,10 @@ namespace TaskDistribution {
 
       void clean();
 
-      void unload(BaseTask* task);
+      void unload(BaseTask* task);*/
 
     private:
-#if !(NO_MPI)
+/*#if !(NO_MPI)
       void run_manager();
 
       void run_others();
@@ -61,11 +61,11 @@ namespace TaskDistribution {
 
       void run_single();
 
-      void task_completed(BaseTask *task);
+      void task_completed(BaseTask *task);*/
 
       ObjectArchive<size_t> archive_;
 
-      std::unordered_map<size_t,BaseTask*> hash_map_;
+      /*std::unordered_map<size_t,BaseTask*> hash_map_;
 
       std::map<std::string,std::list<size_t>> name_map_;
 
@@ -77,7 +77,7 @@ namespace TaskDistribution {
       boost::mpi::communicator world_;
 #endif
 
-      time_t last_print_;
+      time_t last_print_;*/
   };
 };
 

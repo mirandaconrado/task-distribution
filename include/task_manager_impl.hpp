@@ -3,14 +3,14 @@
 
 #include "task_manager.hpp"
 
-#include "dependency_analyzer.hpp"
-#include "task.hpp"
+//#include "dependency_analyzer.hpp"
+//#include "task.hpp"
 
-#include <algorithm>
-#include <tuple>
+//#include <algorithm>
+//#include <tuple>
 
 namespace TaskDistribution {
-  template <class Unit, class... Args>
+/*  template <class Unit, class... Args>
   Task<typename Unit::result_type>
   TaskManager::new_task(Unit const& computing_unit, Args const & ... args) {
     auto args_tuple = std::make_tuple(args...);
@@ -50,7 +50,7 @@ namespace TaskDistribution {
     size_t id = t->get_id();
     size_t size = archive_.load(id, val);
     return size == 0;
-  }
+  }*/
 };
 
 #endif
