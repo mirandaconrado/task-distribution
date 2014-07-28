@@ -7,6 +7,8 @@
 //#include <fstream>
 //#include <unordered_map>
 
+#include <boost/predef.h>
+
 #include "object_archive.hpp"
 
 namespace TaskDistribution {
@@ -18,6 +20,41 @@ namespace TaskDistribution {
       TaskManager();
 
       ~TaskManager();
+
+      //-- Begin Archive mappings --
+
+      // Initializes the archive using a temporary file as backend. As the names
+      // are random, it's possible to have a collision!
+      void init() {
+        archive_.init();
+      }
+
+      // Initializes the archive using a new file as backend.
+      void init(std::string const& filename) {
+        archive_.init(filename);
+      }
+
+      // Resets the buffer size to a certain number of bytes.
+      void set_buffer_size(size_t max_buffer_size) {
+        archive_.set_buffer_size(max_buffer_size);
+      }
+
+      // Same as the other, but the string holds the number of bytes for the
+      // buffer, possibly with modifiers K, M or G. If more than one modifier is
+      // found, then the first one is used.
+      void set_buffer_size(std::string const& max_buffer_size) {
+        archive_.set_buffer_size(max_buffer_size);
+      }
+
+#if BOOST_OS_LINUX
+      // Sets the buffer size to a percentage of the FREE memory available in
+      // the system. Currently only Linux is supported.
+      void set_buffer_size_scale(float max_buffer_size) {
+        archive_.set_buffer_size_scale(max_buffer_size);
+      }
+#endif
+
+      //-- End Archive mappings --
 
       /*template <class Unit, class... Args>
       Task<typename Unit::result_type>
