@@ -9,7 +9,7 @@
 
 #include <boost/predef.h>
 
-#include "archive_key.hpp"
+#include "archive_info.hpp"
 #include "object_archive.hpp"
 
 namespace TaskDistribution {

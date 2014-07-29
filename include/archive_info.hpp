@@ -1,5 +1,5 @@
-#ifndef __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
-#define __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
+#ifndef __TASK_DISTRIBUTION__ARCHIVE_INFO_HPP__
+#define __TASK_DISTRIBUTION__ARCHIVE_INFO_HPP__
 
 #include <boost/functional/hash.hpp>
 #include <functional>
