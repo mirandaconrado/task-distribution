@@ -10,11 +10,21 @@
 //#include <tuple>
 
 namespace TaskDistribution {
-/*  template <class Unit, class... Args>
+  template <class Unit, class... Args>
   Task<typename Unit::result_type>
-  TaskManager::new_task(Unit const& computing_unit, Args const & ... args) {
+  TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     auto args_tuple = std::make_tuple(args...);
-    DependencyAnalyzer da;
+
+    std::string unit_str = ObjectArchive<ArchiveKey>::serialize(computing_unit);
+    std::string args_str = ObjectArchive<ArchiveKey>::serialize(args_tuple);
+
+    // Checks if the task already exists
+    std::string unit_key = typeid(Unit).name();
+    std::string args_key = typeid(args_tuple).name();
+
+    ArchiveKey task_key = get_task(unit_key, args_key, unit_str, args_str);
+
+/*    DependencyAnalyzer da;
     std::for_each(args_tuple, da);
     auto* real_task =
       RealTask<Unit,std::tuple<Args...>>::get(this, computing_unit, args_tuple);
@@ -31,10 +41,10 @@ namespace TaskDistribution {
 
     add_free_task(real_task);
 
-    return Task<typename Unit::result_type>(real_task);
+    return Task<typename Unit::result_type>(real_task);*/
   }
 
-  template <class T>
+  /*template <class T>
   Task<T> TaskManager::new_identity_task(const T& arg) {
     return new_task(IdentityComputingUnit<T>(), arg);
   }

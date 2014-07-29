@@ -20,6 +20,21 @@ namespace TaskDistribution {
       ar & obj_id;
     }
   };
+
+  struct TaskEntry {
+    ArchiveKey task;
+    ArchiveKey computing_unit;
+    ArchiveKey arguments;
+    ArchiveKey result;
+
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+      ar & task;
+      ar & computing_unit;
+      ar & arguments;
+      ar & result;
+    }
+  };
 };
 
 namespace std {

@@ -262,4 +262,86 @@ namespace TaskDistribution {
     key.obj_id = next_free_obj_id_++;
     return key;
   }
+
+  ArchiveKey TaskManager::get_task(std::string const& unit_key,
+      std::string const& args_key,
+      std::string const& unit_str,
+      std::string const& args_str) {
+    std::string map_key = unit_key + args_key;
+
+    ArchiveKey task_key;
+    bool found_previous_task = false;
+
+    if (map_typenames_to_tasks_.count(map_key) > 0) {
+      auto range = map_typenames_to_tasks_.equal_range(map_key);
+      for (auto it = range.first;
+          it != range.second && !found_previous_task;
+          ++it) {
+        task_key = it->second;
+        TaskEntry task_entry;
+        archive_.load(task_key, task_entry, false);
+
+        std::string data;
+
+        archive_.load_raw(task_entry.computing_unit, data, false);
+        if (data != unit_str)
+          continue;
+
+        archive_.load_raw(task_entry.arguments, data, false);
+        if (data != args_str)
+          continue;
+
+        found_previous_task = true;
+      }
+    }
+
+    if (!found_previous_task) {
+      task_key = new_object_key();
+      TaskEntry task_entry;
+
+      // TODO: add task_entry.task
+
+      task_entry.computing_unit =
+        get_component(unit_key, unit_str, map_unit_names_to_units_);
+      task_entry.arguments =
+        get_component(args_key, args_str, map_arg_names_to_args_);
+      task_entry.result = {0,0};
+
+      map_typenames_to_tasks_.insert({map_key, task_key});
+    }
+
+    return task_key;
+  }
+
+  ArchiveKey TaskManager::get_component(std::string const& map_key,
+          std::string const& str,
+          std::unordered_multimap<std::string, ArchiveKey>& map) {
+    ArchiveKey key;
+    bool found_previous = false;
+
+    if (map.count(map_key) > 0) {
+      auto range = map.equal_range(map_key);
+      for (auto it = range.first;
+          it != range.second && !found_previous;
+          ++it) {
+        key = it->second;
+
+        std::string data;
+
+        archive_.load_raw(key, data, false);
+        if (data != str)
+          continue;
+
+        found_previous = true;
+      }
+    }
+
+    if (!found_previous) {
+      key = new_object_key();
+      archive_.insert_raw(key, str, false);
+      map.insert({map_key, key});
+    }
+
+    return key;
+  }
 };

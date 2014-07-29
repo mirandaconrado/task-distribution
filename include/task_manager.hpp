@@ -57,11 +57,11 @@ namespace TaskDistribution {
 
       //-- End Archive mappings --
 
-      /*template <class Unit, class... Args>
+      template <class Unit, class... Args>
       Task<typename Unit::result_type>
-      new_task(Unit const& computing_unit, const Args& ... args);
+      new_task(Unit const& computing_unit, Args const&... args);
 
-      template <class T>
+      /*template <class T>
       Task<T> new_identity_task(const T& arg);
 
       void add_free_task(BaseTask* task);
@@ -103,9 +103,22 @@ namespace TaskDistribution {
 
       ArchiveKey new_object_key();
 
+      ArchiveKey get_task(std::string const& unit_key,
+          std::string const& args_key,
+          std::string const& unit_str,
+          std::string const& args_str);
+
+      ArchiveKey get_component(std::string const& map_key,
+          std::string const& str,
+          std::unordered_multimap<std::string, ArchiveKey>& map);
+
       size_t next_free_obj_id_;
 
       ObjectArchive<ArchiveKey> archive_;
+
+      std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
+      std::unordered_multimap<std::string, ArchiveKey> map_unit_names_to_units_;
+      std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
 
       /*std::unordered_map<size_t,BaseTask*> hash_map_;
 
