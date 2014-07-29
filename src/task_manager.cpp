@@ -1,7 +1,8 @@
 #include "task_manager.hpp"
 
 namespace TaskDistribution {
-  TaskManager::TaskManager() { }
+  TaskManager::TaskManager():
+    next_free_obj_id_(0) { }
 
   TaskManager::~TaskManager() {
     /*for (auto& it : hash_map_)
@@ -168,7 +169,7 @@ namespace TaskDistribution {
 
   bool TaskManager::check(BaseTask* t) const {
     return archive_.is_available(t->get_id());
-  }
+  }*/
 
   size_t TaskManager::id() const {
 #if !(NO_MPI)
@@ -178,7 +179,7 @@ namespace TaskDistribution {
 #endif
   }
 
-  void TaskManager::print_status() {
+  /*void TaskManager::print_status() {
     time_t current = time(NULL);
 
     if (current == last_print_)
@@ -254,4 +255,11 @@ namespace TaskDistribution {
   void TaskManager::clean() {
     archive_.clear();
   }*/
+
+  ArchiveKey TaskManager::new_object_key() {
+    ArchiveKey key;
+    key.node_id = id();
+    key.obj_id = next_free_obj_id_++;
+    return key;
+  }
 };

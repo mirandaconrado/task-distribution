@@ -1,9 +1,9 @@
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
-//#if !(NO_MPI)
-//#include <boost/mpi/communicator.hpp>
-//#endif
+#if !(NO_MPI)
+#include <boost/mpi/communicator.hpp>
+#endif
 //#include <fstream>
 //#include <unordered_map>
 
@@ -76,11 +76,11 @@ namespace TaskDistribution {
 
       template <class T> bool load(BaseTask* task, T& val);
 
-      bool check(BaseTask* task) const;
+      bool check(BaseTask* task) const;*/
 
       size_t id() const;
 
-      void print_status();
+      /*void print_status();
 
       void invalidate(std::string name);
 
@@ -101,6 +101,10 @@ namespace TaskDistribution {
 
       void task_completed(BaseTask *task);*/
 
+      ArchiveKey new_object_key();
+
+      size_t next_free_obj_id_;
+
       ObjectArchive<ArchiveKey> archive_;
 
       /*std::unordered_map<size_t,BaseTask*> hash_map_;
@@ -109,13 +113,13 @@ namespace TaskDistribution {
 
       std::map<std::string,std::pair<size_t,size_t>> count_map_;
 
-      std::list<BaseTask*> free_;
+      std::list<BaseTask*> free_;*/
 
 #if !(NO_MPI)
       boost::mpi::communicator world_;
 #endif
 
-      time_t last_print_;*/
+      /*time_t last_print_;*/
   };
 };
 
