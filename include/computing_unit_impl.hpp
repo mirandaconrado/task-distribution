@@ -10,13 +10,13 @@
 namespace TaskDistribution {
   template <class T>
   ComputingUnit<T>::ComputingUnit() {
-    std::hash<std::string> hasher;
+    /*std::hash<std::string> hasher;
     id_ = hasher(typeid(T).name());
 
     // If we don't already have this kind of Callable, create a copy to store at
     // the map, so this one can be freed whenever the user chooses.
     if (map_.find(id_) == map_.end())
-      map_[id_] = new ComputingUnit<T>(id_);
+      map_[id_] = new ComputingUnit<T>(id_);*/
   }
 
 #if !(NO_MPI)

@@ -5,6 +5,7 @@
 #if !(NO_MPI)
 #include <boost/mpi/communicator.hpp>
 #endif
+#include <boost/serialization/list.hpp>
 #include <unordered_set>
 
 #include "archive_info.hpp"
@@ -14,6 +15,16 @@ namespace TaskDistribution {
 
   class BaseTask {
     public:
+      BaseTask() { }
+
+      template<class Archive>
+      void serialize(Archive& ar, const unsigned int version) {
+        ar & parents_active_;
+        ar & parents_;
+        ar & children_active_;
+        ar & children_;
+      }
+
       /*BaseTask(size_t id, TaskManager* task_manager);
 
       virtual ~BaseTask() { }
@@ -40,6 +51,8 @@ namespace TaskDistribution {
       virtual void unload()=0;*/
 
     protected:
+      BaseTask(ArchiveKey task_key): task_key_(task_key) { }
+
       friend class TaskManager;
 
       /*bool on_memory_, on_disk_;
@@ -53,6 +66,8 @@ namespace TaskDistribution {
 
       size_t children_active_;
       std::list<ArchiveKey> children_;
+
+      ArchiveKey task_key_;
   };
 
   template <class Unit, class Args>
@@ -68,18 +83,18 @@ namespace TaskDistribution {
       RealTask(RealTask const&);
       RealTask<Unit,Args> const& operator=(RealTask<Unit,Args> const&);
 
-      /*friend class TaskManager;
-
-      static RealTask<Unit,Args>* get(TaskManager* task_manager,
+      /*static RealTask<Unit,Args>* get(TaskManager* task_manager,
                                   Unit const& callable,
                                   Args const& args);
 
       RealTask(TaskManager* task_manager,
                Unit const& callable,
                Args const& args,
-               size_t id);
+               size_t id);*/
 
-#if !(NO_MPI)
+      RealTask(ArchiveKey task_key): BaseTask(task_key) { }
+
+/*#if !(NO_MPI)
       virtual bool assign(boost::mpi::communicator& world, size_t node);
       virtual void receive_result(boost::mpi::communicator& world, size_t node);
 #endif
@@ -97,9 +112,11 @@ namespace TaskDistribution {
 
       virtual std::string get_name() const {
         return Unit::name;
-      }
+      }*/
 
-      Unit const computing_unit_;
+      friend class TaskManager;
+
+      /*Unit const computing_unit_;
 
       Args const args_;
 
@@ -135,9 +152,9 @@ namespace TaskDistribution {
       }*/
 
     private:
-      /*friend class TaskManager;
+      friend class TaskManager;
 
-      friend struct DependencyAnalyzer;*/
+      /*friend struct DependencyAnalyzer;*/
 
       Task(ArchiveKey task_key): task_key_(task_key) { }
 

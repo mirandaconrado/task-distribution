@@ -61,10 +61,10 @@ namespace TaskDistribution {
       Task<typename Unit::result_type>
       new_task(Unit const& computing_unit, Args const&... args);
 
-      /*template <class T>
-      Task<T> new_identity_task(const T& arg);
+      template <class T>
+      Task<T> new_identity_task(T const& arg);
 
-      void add_free_task(BaseTask* task);
+      /*void add_free_task(BaseTask* task);
 
       void run();
 
@@ -112,6 +112,10 @@ namespace TaskDistribution {
           std::string const& str,
           std::unordered_multimap<std::string, ArchiveKey>& map);
 
+#if !(NO_MPI)
+      boost::mpi::communicator world_;
+#endif
+
       size_t next_free_obj_id_;
 
       ObjectArchive<ArchiveKey> archive_;
@@ -127,10 +131,6 @@ namespace TaskDistribution {
       std::map<std::string,std::pair<size_t,size_t>> count_map_;
 
       std::list<BaseTask*> free_;*/
-
-#if !(NO_MPI)
-      boost::mpi::communicator world_;
-#endif
 
       /*time_t last_print_;*/
   };

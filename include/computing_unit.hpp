@@ -55,11 +55,6 @@ namespace TaskDistribution {
       // wrapper that must be run on the remote node to fetch all the
       // information required and send the results back.
       virtual void execute(boost::mpi::communicator& world) const=0;
-
-      // Callables need to be serializable in order to be used by MPI. The
-      // default behavior is to transmit nothing and may be overloaded.
-      template<class Archive>
-      void serialize(Archive& ar, const unsigned int version) { }
 #endif
 
       // Static method to fetch the correct kind of unit for an id.
@@ -82,6 +77,11 @@ namespace TaskDistribution {
 
       // Provides an invalid unit id.
       static size_t get_invalid_id();
+
+      // Callables need to be serializable in order to be used by MPI. The
+      // default behavior is to transmit nothing and may be overloaded.
+      template<class Archive>
+      void serialize(Archive& ar, const unsigned int version) { }
 
     protected:
       size_t id_;

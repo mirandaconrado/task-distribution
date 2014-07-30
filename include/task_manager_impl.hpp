@@ -3,6 +3,7 @@
 
 #include "task_manager.hpp"
 
+#include "computing_unit.hpp"
 #include "dependency_analyzer.hpp"
 #include "task.hpp"
 
@@ -37,7 +38,7 @@ namespace TaskDistribution {
     }
 
     DependencyAnalyzer da;
-    std::for_each(args_tuple, da);
+    da.analyze(args_tuple);
 
     for (auto& parent_key: da.dependencies) {
       TaskEntry parent_entry;
@@ -64,12 +65,12 @@ namespace TaskDistribution {
     return Task<typename Unit::result_type>(task_key);
   }
 
-  /*template <class T>
-  Task<T> TaskManager::new_identity_task(const T& arg) {
+  template <class T>
+  Task<T> TaskManager::new_identity_task(T const& arg) {
     return new_task(IdentityComputingUnit<T>(), arg);
   }
 
-  template <class T>
+  /*template <class T>
   void TaskManager::save(BaseTask* t, T const& val) {
     size_t id = t->get_id();
     archive_.insert(id, val);
