@@ -3,8 +3,8 @@
 
 #include "task_manager.hpp"
 
-//#include "dependency_analyzer.hpp"
-//#include "task.hpp"
+#include "dependency_analyzer.hpp"
+#include "task.hpp"
 
 //#include <algorithm>
 //#include <tuple>
@@ -23,25 +23,45 @@ namespace TaskDistribution {
     std::string args_key = typeid(args_tuple).name();
 
     ArchiveKey task_key = get_task(unit_key, args_key, unit_str, args_str);
+    TaskEntry task_entry;
+    archive_.load(task_key, task_entry, false);
 
-/*    DependencyAnalyzer da;
-    std::for_each(args_tuple, da);
-    auto* real_task =
-      RealTask<Unit,std::tuple<Args...>>::get(this, computing_unit, args_tuple);
+    BaseTask* task;
 
-    for (auto &t: da.dependencies) {
-      t->children_.push_back(real_task);
-      real_task->parents_.push_back(t);
-
-      if (!t->on_disk_ && t->should_save())
-        real_task->parents_active_++;
-      if (!real_task->on_disk && real_task->should_save())
-        t->children_active_++;
+    if (task_entry.task.obj_id != 0)
+      archive_.load(task_entry.task, task, false);
+    else {
+      task_entry.task = new_object_key();
+      archive_.insert(task_key, task_entry, false);
+      task = new RealTask<Unit, std::tuple<Args...>>(task_key);
     }
 
-    add_free_task(real_task);
+    DependencyAnalyzer da;
+    std::for_each(args_tuple, da);
 
-    return Task<typename Unit::result_type>(real_task);*/
+    for (auto& parent_key: da.dependencies) {
+      TaskEntry parent_entry;
+      archive_.load(parent_key, parent_entry, false);
+
+      BaseTask* parent;
+      archive_.load(parent_entry.task, parent, false);
+
+      parent->children_.push_back(task_key);
+      task->parents_.push_back(parent_key);
+
+      if (parent_entry.result.obj_id != 0)
+        task->parents_active_++;
+      if (task_entry.result.obj_id != 0)
+        parent->children_active_++;
+
+      archive_.insert(parent_entry.task, parent, false);
+    }
+
+    archive_.insert(task_entry.task, task, false);
+
+//    add_free_task(task);
+
+    return Task<typename Unit::result_type>(task_key);
   }
 
   /*template <class T>

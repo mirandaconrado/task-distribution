@@ -5,13 +5,16 @@
 #if !(NO_MPI)
 #include <boost/mpi/communicator.hpp>
 #endif
+#include <unordered_set>
+
+#include "archive_info.hpp"
 
 namespace TaskDistribution {
   class TaskManager;
 
   class BaseTask {
     public:
-      BaseTask(size_t id, TaskManager* task_manager);
+      /*BaseTask(size_t id, TaskManager* task_manager);
 
       virtual ~BaseTask() { }
 
@@ -34,30 +37,30 @@ namespace TaskDistribution {
 
       virtual std::string get_name() const=0;
 
-      virtual void unload()=0;
+      virtual void unload()=0;*/
 
     protected:
       friend class TaskManager;
 
-      bool on_memory_, on_disk_;
+      /*bool on_memory_, on_disk_;
 
       size_t id_;
 
-      TaskManager* task_manager_;
+      TaskManager* task_manager_;*/
 
       size_t parents_active_;
-      std::list<BaseTask*> parents_;
+      std::list<ArchiveKey> parents_;
 
       size_t children_active_;
-      std::list<BaseTask*> children_;
+      std::list<ArchiveKey> children_;
   };
 
   template <class Unit, class Args>
   class RealTask: public BaseTask {
     public:
-      virtual boost::any call();
+      /*virtual boost::any call();
 
-      virtual ~RealTask();
+      virtual ~RealTask();*/
 
     private:
       // Not implemented
@@ -65,7 +68,7 @@ namespace TaskDistribution {
       RealTask(RealTask const&);
       RealTask<Unit,Args> const& operator=(RealTask<Unit,Args> const&);
 
-      friend class TaskManager;
+      /*friend class TaskManager;
 
       static RealTask<Unit,Args>* get(TaskManager* task_manager,
                                   Unit const& callable,
@@ -100,15 +103,15 @@ namespace TaskDistribution {
 
       Args const args_;
 
-      typename Unit::result_type* result_;
+      typename Unit::result_type* result_;*/
   };
 
   template <class T>
   class Task {
     public:
-      Task(): task(nullptr) { }
+      Task(): task_key_({0,0}) { }
 
-      operator T() const {
+      /*operator T() const {
         BOOST_ASSERT_MSG(task != nullptr, "task not created by a TaskManager");
         return *boost::any_cast<T*>(task->call());
       }
@@ -129,19 +132,20 @@ namespace TaskDistribution {
         BOOST_ASSERT_MSG(t.task != nullptr,
                          "task not created by a TaskManager");
         return t.task->get_id();
-      }
+      }*/
 
     private:
-      friend class TaskManager;
+      /*friend class TaskManager;
 
-      friend struct DependencyAnalyzer;
+      friend struct DependencyAnalyzer;*/
 
-      Task(BaseTask* t): task(t) { }
+      Task(ArchiveKey task_key): task_key_(task_key) { }
 
-      BaseTask* task;
+      //BaseTask* task;
+      ArchiveKey task_key_;
   };
 };
 
-#include "task_impl.hpp"
+//#include "task_impl.hpp"
 
 #endif
