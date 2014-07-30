@@ -299,7 +299,7 @@ namespace TaskDistribution {
       task_key = new_object_key();
       TaskEntry task_entry;
 
-      // TODO: add task_entry.task
+      task_entry.task = {0,0};
 
       task_entry.computing_unit =
         get_component(unit_key, unit_str, map_unit_names_to_units_);
@@ -307,6 +307,7 @@ namespace TaskDistribution {
         get_component(args_key, args_str, map_arg_names_to_args_);
       task_entry.result = {0,0};
 
+      archive_.insert(task_key, task_entry, false);
       map_typenames_to_tasks_.insert({map_key, task_key});
     }
 
