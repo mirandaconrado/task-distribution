@@ -15,7 +15,9 @@ namespace TaskDistribution {
 
   class BaseTask {
     public:
-      BaseTask() { }
+      BaseTask():
+        parents_active_(0),
+        children_active_(0) { }
 
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) {
@@ -51,7 +53,10 @@ namespace TaskDistribution {
       virtual void unload()=0;*/
 
     protected:
-      BaseTask(ArchiveKey task_key): task_key_(task_key) { }
+      BaseTask(ArchiveKey task_key):
+        BaseTask() {
+          task_key_ = task_key;
+      }
 
       friend class TaskManager;
 

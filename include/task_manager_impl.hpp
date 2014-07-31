@@ -62,6 +62,8 @@ namespace TaskDistribution {
 
 //    add_free_task(task);
 
+    delete task;
+
     return Task<typename Unit::result_type>(task_key);
   }
 
