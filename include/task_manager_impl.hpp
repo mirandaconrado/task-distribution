@@ -50,9 +50,9 @@ namespace TaskDistribution {
       parent->children_.push_back(task_key);
       task->parents_.push_back(parent_key);
 
-      if (parent_entry.result.obj_id != 0)
+      if (parent_entry.result.obj_id == 0)
         task->parents_active_++;
-      if (task_entry.result.obj_id != 0)
+      if (task_entry.result.obj_id == 0)
         parent->children_active_++;
 
       archive_.insert(parent_entry.task, parent, false);
