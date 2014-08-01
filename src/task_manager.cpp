@@ -9,23 +9,27 @@ namespace TaskDistribution {
       delete it.second;*/
   }
 
-  /*
-  void TaskManager::add_free_task(BaseTask* task) {
-    if (task->parents_active_ == 0 && !task->on_disk_ && task->should_save()) {
-      bool include = true;
-      for (auto &t: free_)
-        // Compare pointers directly because they should have the same hash.
-        if (t == task) {
-          include = false;
-          break;
-        }
+  void TaskManager::check_if_ready(ArchiveKey const& task_key) {
+    TaskEntry task_entry;
+    archive_.load(task_key, task_entry, true);
 
-      if (include)
-        free_.push_back(task);
+    if (task_entry.result.obj_id != 0)
+      return;
+
+    BaseTask *task;
+    archive_.load(task_entry.task, task, true);
+
+    if (task->parents_active_ == 0) {
+      BaseComputingUnit* unit;
+      archive_.load(task_entry.computing_unit, unit, false);
+      if (unit->should_save())
+        tasks_ready_to_run_.insert(task_key);
     }
+
+    delete task;
   }
 
-  void TaskManager::run() {
+  /*void TaskManager::run() {
 #if !(NO_MPI)
     if (world_.size() > 1) {
       if (world_.rank() == 0)

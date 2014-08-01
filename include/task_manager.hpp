@@ -5,7 +5,8 @@
 #include <boost/mpi/communicator.hpp>
 #endif
 //#include <fstream>
-//#include <unordered_map>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <boost/predef.h>
 
@@ -101,6 +102,8 @@ namespace TaskDistribution {
 
       void task_completed(BaseTask *task);*/
 
+      void check_if_ready(ArchiveKey const& task_key);
+
       ArchiveKey new_object_key();
 
       ArchiveKey get_task(std::string const& unit_key,
@@ -123,6 +126,8 @@ namespace TaskDistribution {
       std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
       std::unordered_multimap<std::string, ArchiveKey> map_unit_names_to_units_;
       std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
+
+      std::unordered_set<ArchiveKey> tasks_ready_to_run_;
 
       /*std::unordered_map<size_t,BaseTask*> hash_map_;
 

@@ -25,15 +25,15 @@ namespace TaskDistribution {
 
     ArchiveKey task_key = get_task(unit_key, args_key, unit_str, args_str);
     TaskEntry task_entry;
-    archive_.load(task_key, task_entry, false);
+    archive_.load(task_key, task_entry, true);
 
     BaseTask* task;
 
     if (task_entry.task.obj_id != 0)
-      archive_.load(task_entry.task, task, false);
+      archive_.load(task_entry.task, task, true);
     else {
       task_entry.task = new_object_key();
-      archive_.insert(task_key, task_entry, false);
+      archive_.insert(task_key, task_entry, true);
       task = new RealTask<Unit, std::tuple<Args...>>(task_key);
     }
 
@@ -58,9 +58,9 @@ namespace TaskDistribution {
       archive_.insert(parent_entry.task, parent, false);
     }
 
-    archive_.insert(task_entry.task, task, false);
+    archive_.insert(task_entry.task, task, true);
 
-//    add_free_task(task);
+    check_if_ready(task_key);
 
     delete task;
 
