@@ -29,10 +29,10 @@ namespace TaskDistribution {
     }
 
     template <class T>
-    void operator()(T const& v) const { }
+    void operator()(T const& v) { }
 
     template <class T>
-    void operator()(Task<T> const& v) const {
+    void operator()(Task<T> const& v) {
       dependencies.push_front(v.task_key_);
     }
   };

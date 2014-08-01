@@ -133,6 +133,11 @@ namespace TaskDistribution {
     public:
       Task(): task_key_({0,0}) { }
 
+      template<class Archive>
+      void serialize(Archive& ar, const unsigned int version) {
+        ar & task_key_;
+      }
+
       /*operator T() const {
         BOOST_ASSERT_MSG(task != nullptr, "task not created by a TaskManager");
         return *boost::any_cast<T*>(task->call());
@@ -159,7 +164,7 @@ namespace TaskDistribution {
     private:
       friend class TaskManager;
 
-      /*friend struct DependencyAnalyzer;*/
+      friend struct DependencyAnalyzer;
 
       Task(ArchiveKey task_key): task_key_(task_key) { }
 
