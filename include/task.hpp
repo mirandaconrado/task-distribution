@@ -25,6 +25,7 @@ namespace TaskDistribution {
         ar & parents_;
         ar & children_active_;
         ar & children_;
+        ar & task_key_;
       }
 
       /*BaseTask(size_t id, TaskManager* task_manager);
