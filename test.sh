@@ -10,6 +10,10 @@ else
 fi;
 
 make test
+if [ $? != 0 ]
+then
+  exit
+fi
 cd ..
 
 if [ ! -d build_mpi ];
@@ -22,4 +26,8 @@ else
 fi;
 
 make test
+if [ $? != 0 ]
+then
+  exit
+fi
 cd ..
