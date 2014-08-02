@@ -83,6 +83,11 @@ namespace TaskDistribution {
 
       virtual ~RealTask();*/
 
+      template<class Archive>
+      void serialize(Archive& ar, const unsigned int version) {
+        ar & boost::serialization::base_object<BaseTask>(*this);
+      }
+
     private:
       // Not implemented
       RealTask();
