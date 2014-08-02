@@ -105,6 +105,13 @@ namespace TaskDistribution {
       virtual void execute(boost::mpi::communicator& world) const;
 #endif
 
+      template<class Archive>
+      void serialize(Archive& ar, const unsigned int version) {
+        ar & boost::serialization::base_object<BaseComputingUnit>(*this);
+        boost::serialization::void_cast_register<T, ComputingUnit<T>>(
+            static_cast<T*>(NULL), static_cast<ComputingUnit<T>*>(NULL));
+      }
+
     private:
       // Internal caller to avoid deadlock during unit register.
       ComputingUnit(size_t id) { id_ = id; }
