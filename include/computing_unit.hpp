@@ -54,7 +54,7 @@ namespace TaskDistribution {
       // If MPI is allowed, we can't just call operator(). This provides a
       // wrapper that must be run on the remote node to fetch all the
       // information required and send the results back.
-      virtual void execute(boost::mpi::communicator& world) const=0;
+      virtual void execute(boost::mpi::communicator& world) const { };
 #endif
 
       // Static method to fetch the correct kind of unit for an id.
