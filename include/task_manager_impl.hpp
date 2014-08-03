@@ -18,9 +18,7 @@ namespace TaskDistribution {
 
     BaseComputingUnit const* unit = &computing_unit;
 
-    //std::string unit_str = ObjectArchive<ArchiveKey>::serialize(computing_unit);
     std::string unit_str = ObjectArchive<ArchiveKey>::serialize<Unit>(unit);
-    //std::string unit_str = ObjectArchive<ArchiveKey>::serialize(unit);
     std::string args_str = ObjectArchive<ArchiveKey>::serialize(args_tuple);
 
     // Checks if the task already exists
@@ -37,25 +35,17 @@ namespace TaskDistribution {
       archive_.load(task_entry.task, task, true);
     else {
       task_entry.task = new_object_key();
-      archive_.insert(task_key, task_entry, true);
+      archive_.insert(task_key, task_entry, false);
       task = new RealTask<Unit, std::tuple<Args...>>(task_key);
+      archive_.insert(task_entry.task, task, false);
     }
-
-    printf("creating task with id %lu\n", task_key.obj_id);
-    printf("computing unit %lu\n", task_entry.computing_unit.obj_id);
-    printf("arguments %lu\n", task_entry.arguments.obj_id);
-    printf("result %lu\n", task_entry.result.obj_id);
-    printf("task %lu\n", task_entry.task.obj_id);
-    printf("\n");
 
     DependencyAnalyzer da;
     da.analyze(args_tuple);
 
     for (auto& parent_key: da.dependencies) {
       TaskEntry parent_entry;
-      printf("parent %lu\n", parent_key.obj_id);
       archive_.load(parent_key, parent_entry, false);
-      printf("fails here\n");
 
       BaseTask* parent;
       archive_.load(parent_entry.task, parent, false);
@@ -73,11 +63,12 @@ namespace TaskDistribution {
       delete parent;
     }
 
-    archive_.insert(task_entry.task, task, true);
+    if (!da.dependencies.empty())
+      archive_.insert(task_entry.task, task, false);
 
     delete task;
 
-//    check_if_ready(task_key);
+    check_if_ready(task_key);
 
     return Task<typename Unit::result_type>(task_key);
   }
