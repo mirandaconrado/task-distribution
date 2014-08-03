@@ -35,9 +35,9 @@ namespace TaskDistribution {
       archive_.load(task_entry.task, task, true);
     else {
       task_entry.task = new_object_key();
-      archive_.insert(task_key, task_entry, false);
+      archive_.insert(task_key, task_entry, true);
       task = new RealTask<Unit, std::tuple<Args...>>(task_key);
-      archive_.insert(task_entry.task, task, false);
+      archive_.insert(task_entry.task, task, true);
     }
 
     DependencyAnalyzer da;
@@ -45,10 +45,10 @@ namespace TaskDistribution {
 
     for (auto& parent_key: da.dependencies) {
       TaskEntry parent_entry;
-      archive_.load(parent_key, parent_entry, false);
+      archive_.load(parent_key, parent_entry, true);
 
       BaseTask* parent;
-      archive_.load(parent_entry.task, parent, false);
+      archive_.load(parent_entry.task, parent, true);
 
       parent->children_.push_back(task_key);
       task->parents_.push_back(parent_key);
@@ -58,13 +58,13 @@ namespace TaskDistribution {
       if (task_entry.result.obj_id == 0)
         parent->children_active_++;
 
-      archive_.insert(parent_entry.task, parent, false);
+      archive_.insert(parent_entry.task, parent, true);
 
       delete parent;
     }
 
     if (!da.dependencies.empty())
-      archive_.insert(task_entry.task, task, false);
+      archive_.insert(task_entry.task, task, true);
 
     delete task;
 

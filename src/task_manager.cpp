@@ -11,7 +11,7 @@ namespace TaskDistribution {
 
   void TaskManager::check_if_ready(ArchiveKey const& task_key) {
     TaskEntry task_entry;
-    archive_.load(task_key, task_entry, false);
+    archive_.load(task_key, task_entry, true);
 
     if (task_entry.result.obj_id != 0)
       return;
@@ -311,7 +311,7 @@ namespace TaskDistribution {
         get_component(args_key, args_str, map_arg_names_to_args_);
       task_entry.result = {0,0};
 
-      archive_.insert(task_key, task_entry, false);
+      archive_.insert(task_key, task_entry, true);
       map_typenames_to_tasks_.insert({map_key, task_key});
     }
 
