@@ -137,7 +137,7 @@ namespace TaskDistribution {
   template <class T>
   class Task {
     public:
-      Task(): task_key_({0,0}) { }
+      Task() { }
 
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) {

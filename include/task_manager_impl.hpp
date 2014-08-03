@@ -31,7 +31,7 @@ namespace TaskDistribution {
 
     BaseTask* task;
 
-    if (task_entry.task.obj_id != 0)
+    if (task_entry.task.is_valid())
       archive_.load(task_entry.task, task, true);
     else {
       task_entry.task = new_object_key();
@@ -53,9 +53,9 @@ namespace TaskDistribution {
       parent->children_.push_back(task_key);
       task->parents_.push_back(parent_key);
 
-      if (parent_entry.result.obj_id == 0)
+      if (!parent_entry.result.is_valid())
         task->parents_active_++;
-      if (task_entry.result.obj_id == 0)
+      if (!task_entry.result.is_valid())
         parent->children_active_++;
 
       archive_.insert(parent_entry.task, parent, true);

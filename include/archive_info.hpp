@@ -9,6 +9,14 @@ namespace TaskDistribution {
     size_t node_id;
     size_t obj_id;
 
+    ArchiveKey(): node_id(0), obj_id(0) { }
+
+    ArchiveKey(size_t node, size_t obj):
+      node_id(node),
+      obj_id(obj) { }
+
+    bool is_valid() const { return obj_id != 0; }
+
     bool operator==(ArchiveKey const& other) const {
       return node_id == other.node_id &&
              obj_id == other.obj_id;
