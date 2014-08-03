@@ -13,7 +13,7 @@ namespace TaskDistribution {
     TaskEntry task_entry;
     archive_.load(task_key, task_entry, false);
 
-/*    if (task_entry.result.obj_id != 0)
+    if (task_entry.result.obj_id != 0)
       return;
 
     BaseTask *task;
@@ -26,7 +26,7 @@ namespace TaskDistribution {
         tasks_ready_to_run_.insert(task_key);
     }
 
-    delete task;*/
+    delete task;
   }
 
   /*void TaskManager::run() {
