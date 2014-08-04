@@ -18,6 +18,7 @@ namespace TaskDistribution {
   Task<typename function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     typedef std::tuple<Args...> args_tuple_type;
+
     static_assert(
         std::tuple_size<args_tuple_type>::value == function_traits<Unit>::arity,
         "Invalid number of arguments."
@@ -33,6 +34,7 @@ namespace TaskDistribution {
           typename function_traits<Unit>::arg_tuple_type
         >::value,
         "Can't convert from arguments provided to expected.");
+
     auto args_tuple = std::make_tuple(args...);
 
     std::string unit_str = ObjectArchive<ArchiveKey>::serialize(computing_unit);
