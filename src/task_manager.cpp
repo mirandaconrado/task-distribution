@@ -13,18 +13,14 @@ namespace TaskDistribution {
     TaskEntry task_entry;
     archive_.load(task_key, task_entry, true);
 
-    if (task_entry.result.is_valid())
+    if (task_entry.result.is_valid() || !task_entry.should_save)
       return;
 
     BaseTask *task;
     archive_.load(task_entry.task, task, true);
 
-    if (task->parents_active_ == 0) {
-      BaseComputingUnit* unit;
-      archive_.load(task_entry.computing_unit, unit, false);
-      if (unit->should_save())
+    if (task->parents_active_ == 0)
         tasks_ready_to_run_.insert(task_key);
-    }
 
     delete task;
   }

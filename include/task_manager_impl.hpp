@@ -16,9 +16,7 @@ namespace TaskDistribution {
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     auto args_tuple = std::make_tuple(args...);
 
-    BaseComputingUnit const* unit = &computing_unit;
-
-    std::string unit_str = ObjectArchive<ArchiveKey>::serialize<Unit>(unit);
+    std::string unit_str = ObjectArchive<ArchiveKey>::serialize(computing_unit);
     std::string args_str = ObjectArchive<ArchiveKey>::serialize(args_tuple);
 
     // Checks if the task already exists
@@ -34,6 +32,9 @@ namespace TaskDistribution {
     if (task_entry.task.is_valid())
       archive_.load(task_entry.task, task, true);
     else {
+      // New task
+      task_entry.should_save = computing_unit.should_save();
+      task_entry.run_locally = computing_unit.run_locally();
       task_entry.task = new_object_key();
       archive_.insert(task_key, task_entry, true);
       task = new RealTask<Unit, std::tuple<Args...>>(task_key);

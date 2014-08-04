@@ -34,6 +34,9 @@ namespace TaskDistribution {
     ArchiveKey computing_unit;
     ArchiveKey arguments;
     ArchiveKey result;
+    bool should_save, run_locally;
+
+    TaskEntry(): should_save(false), run_locally(true) { }
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {

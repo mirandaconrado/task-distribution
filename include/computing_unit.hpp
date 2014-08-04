@@ -54,7 +54,7 @@ namespace TaskDistribution {
       // If MPI is allowed, we can't just call operator(). This provides a
       // wrapper that must be run on the remote node to fetch all the
       // information required and send the results back.
-      virtual void execute(boost::mpi::communicator& world) const { };
+      virtual void execute(boost::mpi::communicator& world) const=0;
 #endif
 
       // Static method to fetch the correct kind of unit for an id.
@@ -104,13 +104,6 @@ namespace TaskDistribution {
       // Implements the specific remote execution for type T.
       virtual void execute(boost::mpi::communicator& world) const;
 #endif
-
-      template<class Archive>
-      void serialize(Archive& ar, const unsigned int version) {
-        ar & boost::serialization::base_object<BaseComputingUnit>(*this);
-        boost::serialization::void_cast_register<T, ComputingUnit<T>>(
-            static_cast<T*>(NULL), static_cast<ComputingUnit<T>*>(NULL));
-      }
 
     private:
       // Internal caller to avoid deadlock during unit register.
