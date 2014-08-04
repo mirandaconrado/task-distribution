@@ -11,7 +11,7 @@
 #include <boost/predef.h>
 
 #include "archive_info.hpp"
-#include "function_traits.hpp"
+#include "compile_utils.hpp"
 #include "object_archive.hpp"
 
 namespace TaskDistribution {

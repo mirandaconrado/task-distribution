@@ -3,20 +3,12 @@
 
 #include "computing_unit.hpp"
 
-#include "function_traits.hpp"
+#include "compile_utils.hpp"
 #include "tuple_serialize.hpp"
 
 #include <functional>
 
 namespace TaskDistribution {
-  // From
-  // http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer/7858971#7858971
-  template <size_t...> struct seq { };
-
-  template <size_t N, size_t... S> struct gens: gens<N-1, N-1, S...> { };
-
-  template <size_t... S> struct gens<0, S...> { typedef seq<S...> type; };
-
   template <class F, class Tuple, size_t... S>
   typename function_traits<F>::return_type
   apply(F&& f, Tuple&& args, seq<S...>) {
