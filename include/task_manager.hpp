@@ -11,6 +11,7 @@
 #include <boost/predef.h>
 
 #include "archive_info.hpp"
+#include "function_traits.hpp"
 #include "object_archive.hpp"
 
 namespace TaskDistribution {
@@ -59,7 +60,7 @@ namespace TaskDistribution {
       //-- End Archive mappings --
 
       template <class Unit, class... Args>
-      Task<typename Unit::result_type>
+      Task<typename function_traits<Unit>::return_type>
       new_task(Unit const& computing_unit, Args const&... args);
 
       template <class T>

@@ -115,8 +115,6 @@ namespace TaskDistribution {
   template <class T>
   class IdentityComputingUnit: public ComputingUnit<IdentityComputingUnit<T>> {
     public:
-      typedef T result_type;
-      typedef std::tuple<T> args_type;
       static const std::string name;
 
       virtual bool run_locally() const {
@@ -127,8 +125,8 @@ namespace TaskDistribution {
         return false;
       }
 
-      result_type operator()(args_type const& args) const {
-        return std::get<0>(args);
+      T operator()(T const& arg) const {
+        return arg;
       }
   };
   template <class T>

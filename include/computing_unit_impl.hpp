@@ -3,11 +3,26 @@
 
 #include "computing_unit.hpp"
 
+#include "function_traits.hpp"
 #include "tuple_serialize.hpp"
 
 #include <functional>
 
 namespace TaskDistribution {
+  // From
+  // http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer/7858971#7858971
+  template <size_t...> struct seq { };
+
+  template <size_t N, size_t... S> struct gens: gens<N-1, N-1, S...> { };
+
+  template <size_t... S> struct gens<0, S...> { typedef seq<S...> type; };
+
+  template <class F, class Tuple, size_t... S>
+  typename function_traits<F>::return_type
+  apply(F&& f, Tuple&& args, seq<S...>) {
+    return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
+  }
+
   template <class T>
   ComputingUnit<T>::ComputingUnit() {
     /*std::hash<std::string> hasher;
@@ -35,11 +50,11 @@ namespace TaskDistribution {
     size_t task_id;
     world.recv(0, 0, task_id);
 
-    typename T::args_type args;
+    typename function_traits<T>::arg_tuple_type args;
     world.recv(0, 0, args);
 
-    typename T::result_type res;
-    res = obj(args);
+    typename function_traits<T>::return_type res;
+    res = apply(obj, args, typename gens<function_traits<T>::arity>::type());
 
     world.send(0, 0, task_id);
     world.send(0, 0, res);
