@@ -6,7 +6,6 @@
 #include "computing_unit.hpp"
 #include "dependency_analyzer.hpp"
 #include "task.hpp"
-#include "tuple_convert.hpp"
 
 #include <boost/integer/static_min_max.hpp>
 
@@ -17,7 +16,7 @@ namespace TaskDistribution {
   template <class Unit, class... Args>
   Task<typename function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
-    typedef std::tuple<Args...> args_tuple_type;
+    typedef typename clean_tuple<Args...>::type args_tuple_type;
 
     static_assert(
         std::tuple_size<args_tuple_type>::value == function_traits<Unit>::arity,
@@ -26,16 +25,16 @@ namespace TaskDistribution {
 
     static_assert(
         is_tuple_convertible<
-          boost::static_unsigned_min<
-            std::tuple_size<args_tuple_type>::value,
-            function_traits<Unit>::arity
-          >::value,
           std::tuple<Args...>,
           typename function_traits<Unit>::arg_tuple_type
         >::value,
         "Can't convert from arguments provided to expected.");
 
-    auto args_tuple = std::make_tuple(args...);
+    typedef typename convert_tuple<
+      typename function_traits<Unit>::arg_tuple_type, args_tuple_type>::type
+      converted_args_tuple_type;
+
+    converted_args_tuple_type args_tuple(args...);
 
     std::string unit_str = ObjectArchive<ArchiveKey>::serialize(computing_unit);
     std::string args_str = ObjectArchive<ArchiveKey>::serialize(args_tuple);
