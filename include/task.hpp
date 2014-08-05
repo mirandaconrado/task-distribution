@@ -155,7 +155,18 @@ namespace TaskDistribution {
         ar & task_key_;
       }
 
+      template <class Other>
+      bool is_same_task(Task<Other> const& other) const {
+        return false;
+      }
+
+      bool is_same_task(Task<T> const& other) const {
+        return task_key_ == other.task_key_ &&
+               task_manager_ == other.task_manager_;
+      }
+
       operator T() const {
+        printf("conversion\n");
         BOOST_ASSERT_MSG(task_key_.is_valid(), "invalid task key");
         //return *boost::any_cast<T*>(task->call());
         return T();
