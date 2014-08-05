@@ -99,6 +99,11 @@ namespace TaskDistribution {
     return new_task(IdentityComputingUnit<T>(), arg);
   }
 
+  template <class T>
+  Task<T> TaskManager::new_identity_task(Task<T> const& arg) {
+    return arg;
+  }
+
   template <class To, class From>
   Task<To> TaskManager::new_conversion_task(From const& arg) {
     return new_task(ConvertComputingUnit<From,To>(), arg);

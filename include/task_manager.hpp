@@ -66,6 +66,9 @@ namespace TaskDistribution {
       template <class T>
       Task<T> new_identity_task(T const& arg);
 
+      template <class T>
+      Task<T> new_identity_task(Task<T> const& arg);
+
       template <class To, class From>
       Task<To> new_conversion_task(From const& arg);
 
