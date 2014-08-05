@@ -150,16 +150,6 @@ namespace TaskDistribution {
         return *this;
       }
 
-      Task(Task<T> const& other):
-        task_key_(other.task_key_),
-        task_manager_(other.task_manager_) { }
-
-      Task<T> const& operator=(Task<T> const& other) {
-        task_key_ = other.task_key_;
-        task_manager_ = other.task_manager_;
-        return *this;
-      }
-
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) {
         ar & task_key_;
