@@ -156,7 +156,7 @@ namespace TaskDistribution {
       }
 
       operator T() const {
-        BOOST_ASSERT_MSG(!task_key_.is_valid(), "invalid task key");
+        BOOST_ASSERT_MSG(task_key_.is_valid(), "invalid task key");
         //return *boost::any_cast<T*>(task->call());
         return T();
       }
