@@ -43,6 +43,7 @@
 #include <boost/mpi/communicator.hpp>
 #endif
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 
 namespace TaskDistribution {
@@ -131,6 +132,29 @@ namespace TaskDistribution {
   };
   template <class T>
   const std::string IdentityComputingUnit<T>::name("identity");
+
+  template <class From, class To>
+  class ConvertComputingUnit:
+    public ComputingUnit<ConvertComputingUnit<From, To>> {
+    public:
+      static const std::string name;
+
+      virtual bool run_locally() const {
+        return true;
+      }
+
+      virtual bool should_save() const {
+        return false;
+      }
+
+      To operator()(From const& arg) const {
+        static_assert(std::is_convertible<From,To>::value,
+            "Invalid ConvertComputingUnit!");
+        return arg;
+      }
+  };
+  template <class From, class To>
+  const std::string ConvertComputingUnit<From, To>::name("convert");
 };
 
 #include "computing_unit_impl.hpp"
