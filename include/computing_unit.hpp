@@ -139,6 +139,13 @@ namespace TaskDistribution {
     public:
       static const std::string name;
 
+      ConvertComputingUnit() {
+        static_assert(std::is_convertible<From,To>::value,
+            "Invalid ConvertComputingUnit as types aren't convertible!");
+        static_assert(!std::is_same<From,To>::value,
+            "Invalid ConvertComputingUnit as types are the same!");
+      }
+
       virtual bool run_locally() const {
         return true;
       }
@@ -148,8 +155,6 @@ namespace TaskDistribution {
       }
 
       To operator()(From const& arg) const {
-        static_assert(std::is_convertible<From,To>::value,
-            "Invalid ConvertComputingUnit!");
         return arg;
       }
   };
