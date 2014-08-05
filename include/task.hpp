@@ -139,21 +139,43 @@ namespace TaskDistribution {
     public:
       Task() { }
 
+      template <class Other>
+      Task(Task<Other> const& other) {
+        *this = other.task_manager_->template new_conversion_task<T>(other);
+      }
+
+      template <class Other>
+      Task<T> const& operator=(Task<Other> const& other) {
+        *this = other.task_manager_->template new_conversion_task<T>(other);
+        return *this;
+      }
+
+      Task(Task<T> const& other):
+        task_key_(other.task_key_),
+        task_manager_(other.task_manager_) { }
+
+      Task<T> const& operator=(Task<T> const& other) {
+        task_key_ = other.task_key_;
+        task_manager_ = other.task_manager_;
+        return *this;
+      }
+
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) {
         ar & task_key_;
       }
 
-      /*operator T() const {
-        BOOST_ASSERT_MSG(task != nullptr, "task not created by a TaskManager");
-        return *boost::any_cast<T*>(task->call());
+      operator T() const {
+        BOOST_ASSERT_MSG(!task_key_.is_valid(), "invalid task key");
+        //return *boost::any_cast<T*>(task->call());
+        return T();
       }
 
       T operator()() const {
         return (T)*this;
       }
 
-      void unload() {
+      /*void unload() {
         task->unload();
       }
 
@@ -168,14 +190,19 @@ namespace TaskDistribution {
       }*/
 
     private:
+      template <class> friend class Task;
+
       friend class TaskManager;
 
       friend struct DependencyAnalyzer;
 
-      Task(ArchiveKey task_key): task_key_(task_key) { }
+      Task(ArchiveKey task_key, TaskManager* task_manager):
+        task_key_(task_key),
+        task_manager_(task_manager) { }
 
-      //BaseTask* task;
       ArchiveKey task_key_;
+
+      TaskManager* task_manager_;
   };
 };
 

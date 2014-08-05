@@ -91,12 +91,17 @@ namespace TaskDistribution {
 
     check_if_ready(task_key);
 
-    return Task<typename function_traits<Unit>::return_type>(task_key);
+    return Task<typename function_traits<Unit>::return_type>(task_key, this);
   }
 
   template <class T>
   Task<T> TaskManager::new_identity_task(T const& arg) {
     return new_task(IdentityComputingUnit<T>(), arg);
+  }
+
+  template <class To, class From>
+  Task<To> TaskManager::new_conversion_task(From const& arg) {
+    return new_task(ConvertComputingUnit<From,To>(), arg);
   }
 
   /*template <class T>
