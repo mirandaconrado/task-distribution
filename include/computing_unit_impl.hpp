@@ -3,20 +3,27 @@
 
 #include "computing_unit.hpp"
 
+#include "compile_utils.hpp"
 #include "tuple_serialize.hpp"
 
 #include <functional>
 
 namespace TaskDistribution {
+  template <class F, class Tuple, size_t... S>
+  typename function_traits<F>::return_type
+  apply(F&& f, Tuple&& args, seq<S...>) {
+    return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
+  }
+
   template <class T>
   ComputingUnit<T>::ComputingUnit() {
-    std::hash<std::string> hasher;
+    /*std::hash<std::string> hasher;
     id_ = hasher(typeid(T).name());
 
     // If we don't already have this kind of Callable, create a copy to store at
     // the map, so this one can be freed whenever the user chooses.
     if (map_.find(id_) == map_.end())
-      map_[id_] = new ComputingUnit<T>(id_);
+      map_[id_] = new ComputingUnit<T>(id_);*/
   }
 
 #if !(NO_MPI)
@@ -35,11 +42,11 @@ namespace TaskDistribution {
     size_t task_id;
     world.recv(0, 0, task_id);
 
-    typename T::args_type args;
+    typename function_traits<T>::arg_tuple_type args;
     world.recv(0, 0, args);
 
-    typename T::result_type res;
-    res = obj(args);
+    typename function_traits<T>::return_type res;
+    res = apply(obj, args, typename gens<function_traits<T>::arity>::type());
 
     world.send(0, 0, task_id);
     world.send(0, 0, res);

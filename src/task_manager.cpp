@@ -1,31 +1,31 @@
 #include "task_manager.hpp"
 
 namespace TaskDistribution {
-  TaskManager::TaskManager(std::string const& p, size_t max_buffer_size):
-    archive_(p, max_buffer_size),
-    last_print_(0) { }
+  TaskManager::TaskManager():
+    next_free_obj_id_(1) { }
 
   TaskManager::~TaskManager() {
-    for (auto& it : hash_map_)
-      delete it.second;
+    /*for (auto& it : hash_map_)
+      delete it.second;*/
   }
 
-  void TaskManager::add_free_task(BaseTask* task) {
-    if (task->parents_active_ == 0 && !task->on_disk_ && task->should_save()) {
-      bool include = true;
-      for (auto &t: free_)
-        // Compare pointers directly because they should have the same hash.
-        if (t == task) {
-          include = false;
-          break;
-        }
+  void TaskManager::check_if_ready(ArchiveKey const& task_key) {
+    TaskEntry task_entry;
+    archive_.load(task_key, task_entry, true);
 
-      if (include)
-        free_.push_back(task);
-    }
+    if (task_entry.result.is_valid() || !task_entry.should_save)
+      return;
+
+    BaseTask *task;
+    archive_.load(task_entry.task, task, true);
+
+    if (task->parents_active_ == 0)
+        tasks_ready_to_run_.insert(task_key);
+
+    delete task;
   }
 
-  void TaskManager::run() {
+  /*void TaskManager::run() {
 #if !(NO_MPI)
     if (world_.size() > 1) {
       if (world_.rank() == 0)
@@ -169,7 +169,7 @@ namespace TaskDistribution {
 
   bool TaskManager::check(BaseTask* t) const {
     return archive_.is_available(t->get_id());
-  }
+  }*/
 
   size_t TaskManager::id() const {
 #if !(NO_MPI)
@@ -179,7 +179,7 @@ namespace TaskDistribution {
 #endif
   }
 
-  void TaskManager::print_status() {
+  /*void TaskManager::print_status() {
     time_t current = time(NULL);
 
     if (current == last_print_)
@@ -254,5 +254,92 @@ namespace TaskDistribution {
 
   void TaskManager::clean() {
     archive_.clear();
+  }*/
+
+  ArchiveKey TaskManager::new_object_key() {
+    ArchiveKey key;
+    key.node_id = id();
+    key.obj_id = next_free_obj_id_++;
+    return key;
+  }
+
+  ArchiveKey TaskManager::get_task(std::string const& unit_key,
+      std::string const& args_key,
+      std::string const& unit_str,
+      std::string const& args_str) {
+    std::string map_key = unit_key + args_key;
+
+    ArchiveKey task_key;
+    bool found_previous_task = false;
+
+    if (map_typenames_to_tasks_.count(map_key) > 0) {
+      auto range = map_typenames_to_tasks_.equal_range(map_key);
+      for (auto it = range.first;
+          it != range.second && !found_previous_task;
+          ++it) {
+        task_key = it->second;
+        TaskEntry task_entry;
+        archive_.load(task_key, task_entry, false);
+
+        std::string data;
+
+        archive_.load_raw(task_entry.computing_unit, data, false);
+        if (data != unit_str)
+          continue;
+
+        archive_.load_raw(task_entry.arguments, data, false);
+        if (data != args_str)
+          continue;
+
+        found_previous_task = true;
+      }
+    }
+
+    if (!found_previous_task) {
+      task_key = new_object_key();
+      TaskEntry task_entry;
+
+      task_entry.computing_unit =
+        get_component(unit_key, unit_str, map_unit_names_to_units_);
+      task_entry.arguments =
+        get_component(args_key, args_str, map_arg_names_to_args_);
+
+      archive_.insert(task_key, task_entry, true);
+      map_typenames_to_tasks_.insert({map_key, task_key});
+    }
+
+    return task_key;
+  }
+
+  ArchiveKey TaskManager::get_component(std::string const& map_key,
+          std::string const& str,
+          std::unordered_multimap<std::string, ArchiveKey>& map) {
+    ArchiveKey key;
+    bool found_previous = false;
+
+    if (map.count(map_key) > 0) {
+      auto range = map.equal_range(map_key);
+      for (auto it = range.first;
+          it != range.second && !found_previous;
+          ++it) {
+        key = it->second;
+
+        std::string data;
+
+        archive_.load_raw(key, data, false);
+        if (data != str)
+          continue;
+
+        found_previous = true;
+      }
+    }
+
+    if (!found_previous) {
+      key = new_object_key();
+      archive_.insert_raw(key, str, false);
+      map.insert({map_key, key});
+    }
+
+    return key;
   }
 };

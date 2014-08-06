@@ -5,13 +5,11 @@
 
 namespace TaskDistribution {
   template<size_t I, class Archive, class Tuple >
-  typename std::enable_if<(I == std::tuple_size<Tuple>::value),
-           void>::type
+  typename std::enable_if<(I == std::tuple_size<Tuple>::value), void>::type
   serialize_tuple(Archive& ar, Tuple& t, const unsigned int version) { }
 
   template<size_t I, class Archive, class Tuple>
-  typename std::enable_if<(I < std::tuple_size<Tuple>::value),
-           void>::type
+  typename std::enable_if<(I < std::tuple_size<Tuple>::value), void>::type
   serialize_tuple(Archive& ar, Tuple& t, const unsigned int version) {
     ar & std::get<I>(t);
     serialize_tuple<I + 1>(ar, t, version);

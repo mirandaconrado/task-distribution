@@ -43,6 +43,7 @@
 #include <boost/mpi/communicator.hpp>
 #endif
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 
 namespace TaskDistribution {
@@ -55,11 +56,6 @@ namespace TaskDistribution {
       // wrapper that must be run on the remote node to fetch all the
       // information required and send the results back.
       virtual void execute(boost::mpi::communicator& world) const=0;
-
-      // Callables need to be serializable in order to be used by MPI. The
-      // default behavior is to transmit nothing and may be overloaded.
-      template<class Archive>
-      void serialize(Archive& ar, const unsigned int version) { }
 #endif
 
       // Static method to fetch the correct kind of unit for an id.
@@ -82,6 +78,11 @@ namespace TaskDistribution {
 
       // Provides an invalid unit id.
       static size_t get_invalid_id();
+
+      // Callables need to be serializable in order to be used by MPI. The
+      // default behavior is to transmit nothing and may be overloaded.
+      template<class Archive>
+      void serialize(Archive& ar, const unsigned int version) { }
 
     protected:
       size_t id_;
@@ -115,8 +116,6 @@ namespace TaskDistribution {
   template <class T>
   class IdentityComputingUnit: public ComputingUnit<IdentityComputingUnit<T>> {
     public:
-      typedef T result_type;
-      typedef std::tuple<T> args_type;
       static const std::string name;
 
       virtual bool run_locally() const {
@@ -127,12 +126,40 @@ namespace TaskDistribution {
         return false;
       }
 
-      result_type operator()(args_type const& args) const {
-        return std::get<0>(args);
+      T operator()(T const& arg) const {
+        return arg;
       }
   };
   template <class T>
   const std::string IdentityComputingUnit<T>::name("identity");
+
+  template <class From, class To>
+  class ConvertComputingUnit:
+    public ComputingUnit<ConvertComputingUnit<From, To>> {
+    public:
+      static const std::string name;
+
+      ConvertComputingUnit() {
+        static_assert(std::is_convertible<From,To>::value,
+            "Invalid ConvertComputingUnit as types aren't convertible!");
+        static_assert(!std::is_same<From,To>::value,
+            "Invalid ConvertComputingUnit as types are the same!");
+      }
+
+      virtual bool run_locally() const {
+        return true;
+      }
+
+      virtual bool should_save() const {
+        return false;
+      }
+
+      To operator()(From const& arg) const {
+        return arg;
+      }
+  };
+  template <class From, class To>
+  const std::string ConvertComputingUnit<From, To>::name("convert");
 };
 
 #include "computing_unit_impl.hpp"
