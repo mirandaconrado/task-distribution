@@ -39,28 +39,20 @@
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 
-#if !(NO_MPI)
+#if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #endif
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
 
+#include "compile_utils.hpp"
+
 namespace TaskDistribution {
   // Abstract class to allow us to have pointers to units. Shouldn't be used
   // directly!
   class BaseComputingUnit {
     public:
-#if !(NO_MPI)
-      // If MPI is allowed, we can't just call operator(). This provides a
-      // wrapper that must be run on the remote node to fetch all the
-      // information required and send the results back.
-      virtual void execute(boost::mpi::communicator& world) const=0;
-#endif
-
-      // Static method to fetch the correct kind of unit for an id.
-      static BaseComputingUnit const* get_by_id(size_t id);
-
       // Must the object be called on the master node? Defaults to false.
       virtual bool run_locally() const {
         return false;
@@ -71,24 +63,39 @@ namespace TaskDistribution {
         return true;
       }
 
+      // Static method to fetch the correct kind of unit for an id.
+      static BaseComputingUnit const* get_by_id(std::string const& id);
+
       // Gets the id associated with this kind of unit.
-      size_t get_id() const {
-        return id_;
+      std::string const& get_id() const {
+        return *id_;
       }
 
       // Provides an invalid unit id.
-      static size_t get_invalid_id();
+      static std::string get_invalid_id() {
+        return "";
+      }
 
-      // Callables need to be serializable in order to be used by MPI. The
-      // default behavior is to transmit nothing and may be overloaded.
+      // Callables need to be serializable. The default behavior is to transmit
+      // nothing and may be overloaded.
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) { }
 
+#if ENABLE_MPI
+      // If MPI is allowed, we can't just call operator(). This provides a
+      // wrapper that must be run on the remote node to fetch all the
+      // information required and send the results back.
+      virtual void execute(boost::mpi::communicator& world) const=0;
+#endif
+
     protected:
-      size_t id_;
+      // Allows access to id_
+      template <class> friend class ComputingUnit;
+
+      std::string const* id_;
 
       // Map between hashes and units.
-      static std::unordered_map<size_t,BaseComputingUnit*> map_;
+      static std::unordered_map<std::string,BaseComputingUnit*> map_;
   };
 
   // Class that should be inherited by the user's units. For an example on how
@@ -99,16 +106,16 @@ namespace TaskDistribution {
   class ComputingUnit: public BaseComputingUnit {
     public:
       // Registers the unit by placing a new copy into the units' map.
-      ComputingUnit();
+      explicit ComputingUnit(std::string const& name);
 
-#if !(NO_MPI)
+#if ENABLE_MPI
       // Implements the specific remote execution for type T.
       virtual void execute(boost::mpi::communicator& world) const;
 #endif
 
     private:
-      // Internal caller to avoid deadlock during unit register.
-      ComputingUnit(size_t id) { id_ = id; }
+      // Internal constructor to avoid deadlock during unit register.
+      ComputingUnit() { }
   };
 
   // Example ComputingUnit that just returns its argument. Check that it
@@ -116,7 +123,8 @@ namespace TaskDistribution {
   template <class T>
   class IdentityComputingUnit: public ComputingUnit<IdentityComputingUnit<T>> {
     public:
-      static const std::string name;
+      IdentityComputingUnit():
+        ComputingUnit<IdentityComputingUnit<T>>("identity") { }
 
       virtual bool run_locally() const {
         return true;
@@ -130,16 +138,13 @@ namespace TaskDistribution {
         return arg;
       }
   };
-  template <class T>
-  const std::string IdentityComputingUnit<T>::name("identity");
 
   template <class From, class To>
   class ConvertComputingUnit:
     public ComputingUnit<ConvertComputingUnit<From, To>> {
     public:
-      static const std::string name;
-
-      ConvertComputingUnit() {
+      ConvertComputingUnit():
+        ComputingUnit<ConvertComputingUnit<From, To>>("convert") {
         static_assert(std::is_convertible<From,To>::value,
             "Invalid ConvertComputingUnit as types aren't convertible!");
         static_assert(!std::is_same<From,To>::value,
@@ -158,8 +163,6 @@ namespace TaskDistribution {
         return arg;
       }
   };
-  template <class From, class To>
-  const std::string ConvertComputingUnit<From, To>::name("convert");
 };
 
 #include "computing_unit_impl.hpp"

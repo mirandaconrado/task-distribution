@@ -3,14 +3,13 @@
 #include <gtest/gtest.h>
 
 TEST(ComputingUnit, ID) {
-  std::hash<std::string> hasher;
-  size_t id = hasher(typeid(TestComputingUnit).name());
+  std::string id = "TestComputingUnit";
 
   EXPECT_EQ(nullptr, TestComputingUnit::get_by_id(id));
 
   TestComputingUnit unit;
 
-  EXPECT_EQ(id, unit.get_id());
+  EXPECT_EQ("TestComputingUnit", unit.get_id());
 
   EXPECT_NE(&unit, TestComputingUnit::get_by_id(id));
 
@@ -27,7 +26,7 @@ TEST(ComputingUnit, Call) {
   TestComputingUnit unit(3);
 
   for (int i = 0; i < 10; i++)
-    EXPECT_EQ(3*i, unit(std::make_tuple(i)));
+    EXPECT_EQ(3*i, unit(i));
 }
 
 TEST(ComputingUnit, Identity) {
@@ -36,5 +35,14 @@ TEST(ComputingUnit, Identity) {
   EXPECT_FALSE(unit.should_save());
 
   for (int i = 0; i < 10; i++)
-    EXPECT_EQ(i, unit(std::make_tuple(i)));
+    EXPECT_EQ(i, unit(i));
+}
+
+TEST(ComputingUnit, Convert) {
+  TaskDistribution::ConvertComputingUnit<int,float> unit;
+  EXPECT_TRUE(unit.run_locally());
+  EXPECT_FALSE(unit.should_save());
+
+  for (int i = 0; i < 10; i++)
+    EXPECT_EQ(i, unit(i));
 }

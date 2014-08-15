@@ -1,4 +1,4 @@
-if(NOT NO_MPI)
+if(ENABLE_MPI)
   add_custom_target(test COMMAND mpirun -np 2 run_tests_mpi.bin
                          DEPENDS run_tests_mpi.bin)
 
@@ -17,8 +17,7 @@ else()
                          DEPENDS run_tests.bin)
 
   add_executable(run_tests.bin EXCLUDE_FROM_ALL
-    #computing_unit.cpp
-    task_manager.cpp
+    computing_unit.cpp
   )
 
   target_link_libraries(run_tests.bin gtest gtest_main

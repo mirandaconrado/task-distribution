@@ -172,7 +172,7 @@ namespace TaskDistribution {
   }*/
 
   size_t TaskManager::id() const {
-#if !(NO_MPI)
+#if ENABLE_MPI
     return world_.rank();
 #else
     return 0;

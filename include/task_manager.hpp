@@ -1,7 +1,7 @@
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
-#if !(NO_MPI)
+#if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #endif
 //#include <fstream>
@@ -122,7 +122,7 @@ namespace TaskDistribution {
           std::string const& str,
           std::unordered_multimap<std::string, ArchiveKey>& map);
 
-#if !(NO_MPI)
+#if ENABLE_MPI
       boost::mpi::communicator world_;
 #endif
 

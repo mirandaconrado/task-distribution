@@ -6,15 +6,15 @@
 class TestComputingUnit: public
                          TaskDistribution::ComputingUnit<TestComputingUnit> {
   public:
-    TestComputingUnit(): val_(2) { }
-    TestComputingUnit(int val): val_(val) { }
+    TestComputingUnit():
+      TestComputingUnit(2) { }
 
-    typedef int result_type;
-    typedef std::tuple<int> args_type;
-    static const std::string name;
+    TestComputingUnit(int val):
+      TaskDistribution::ComputingUnit<TestComputingUnit>("TestComputingUnit"),
+      val_(val) { }
 
-    result_type operator()(args_type const& args) const {
-      return val_*std::get<0>(args);
+    int operator()(int const& new_val) const {
+      return val_ * new_val;
     }
 
     template<class Archive>
@@ -25,6 +25,5 @@ class TestComputingUnit: public
   private:
     int val_;
 };
-const std::string TestComputingUnit::name("TestComputingUnit");
 
 #endif
