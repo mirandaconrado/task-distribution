@@ -4,25 +4,21 @@
 //
 // Each computing unit is identified by an id that should be unique, so that
 // the class used to compute can be identified. Currently the id is given by the
-// hash of the class name, as defined by "typeid(T).name()". The class
-// BaseComputingUnit is used only to provide abstract pointers to units and thus
-// should NEVER be used directly.
+// name provided by to the constructor. The class BaseComputingUnit is used only
+// to provide abstract pointers to units and thus should NEVER be used directly.
 //
 // To create a new computing unit, inherit from ComputingUnit<T> like this:
 // class MyUnit: public ComputingUnit<MyUnit>
 // and provide the following inside the class:
-// 1) a method operator() that performs the computation desired;
-// 2) a type named result_type that is the same as the return type for
-// operator();
-// 3) a type named args_type that is the same as the argument for operator();
-// 4) a static variable "std::string name" to identify the unit.
+// 1) the constructor should call ComputingUnit<MyUnit> with the desired unit's
+// name as argument;
+// 1) a method operator() that performs the computation desired.
 //
 // Caveats:
-// 1) The operator() method currently can only have 1 argument. If more
-// arguments are needed, then use a std::tuple.
-// 2) Only the return of operator() is considered as the result, so any changes
+// 1) Only the return of operator() is considered as the result, so any changes
 // to the argument are ignored.
-// 3) Both result_type and args_type must be serializable through boost.
+// 2) All arguments and the return of operator() must be serializable through
+// boost.
 //
 // Besides these requirements, the user has control over the following options:
 // 1) whether the object must run on the master node, chosen through the method
