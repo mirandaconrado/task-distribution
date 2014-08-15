@@ -3,9 +3,7 @@ if(ENABLE_MPI)
                          DEPENDS run_tests_mpi.bin)
 
   add_executable(run_tests_mpi.bin EXCLUDE_FROM_ALL
-    #computing_unit_mpi.cpp
-    task_manager.cpp
-    task_manager_mpi.cpp
+    computing_unit_mpi.cpp
     test_mpi_main.cpp
   )
 
