@@ -8,5 +8,8 @@ namespace TaskDistribution {
     return map_[id];
   }
 
+#if ENABLE_MPI
+  int BaseComputingUnit::mpi_tag;
+#endif
   std::unordered_map<std::string,BaseComputingUnit*> BaseComputingUnit::map_;
 };

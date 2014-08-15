@@ -37,6 +37,7 @@
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
+#include "mpi_object_archive.hpp"
 #endif
 #include <tuple>
 #include <type_traits>
@@ -78,10 +79,7 @@ namespace TaskDistribution {
       void serialize(Archive& ar, const unsigned int version) { }
 
 #if ENABLE_MPI
-      // If MPI is allowed, we can't just call operator(). This provides a
-      // wrapper that must be run on the remote node to fetch all the
-      // information required and send the results back.
-      virtual void execute(boost::mpi::communicator& world) const=0;
+      static int mpi_tag;
 #endif
 
     protected:
@@ -105,8 +103,12 @@ namespace TaskDistribution {
       explicit ComputingUnit(std::string const& name);
 
 #if ENABLE_MPI
-      // Implements the specific remote execution for type T.
-      virtual void execute(boost::mpi::communicator& world) const;
+      // If MPI is allowed, we can't just call operator(). This provides a
+      // wrapper that must be run on the remote node to fetch all the
+      // information required and send the results back.
+      template <class Key>
+      void execute(boost::mpi::communicator& world,
+          MPIObjectArchive<Key>& archive, Key const& response_key) const;
 #endif
 
     private:
