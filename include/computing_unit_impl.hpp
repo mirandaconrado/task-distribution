@@ -17,6 +17,7 @@ namespace TaskDistribution {
       id_ = &it->first;
       it->second->id_ = id_;
     }
+    id_ = &map_.find(name)->first;
   }
 
   template <class F, class Tuple, size_t... S>
