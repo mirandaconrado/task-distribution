@@ -4,40 +4,41 @@
 #include <gtest/gtest.h>
 
 TEST(MPIComputingUnit, Execute) {
-  MPIObjectArchive<int> archive(world);
+  MPIObjectArchive<TaskDistribution::ArchiveKey> archive(world);
 
   int mpi_tag = 20;
   TaskDistribution::BaseComputingUnit::mpi_tag = mpi_tag;
 
+  TaskDistribution::TaskEntry task;
+
   if (world.rank() == 0) {
-    TestComputingUnit unit(3);
-    archive.insert(0, unit);
+    task.task = {0, 1};
+    task.computing_unit = {0, 2};
+    task.arguments = {0, 3};
+    task.result = {0, 4};
+    task.computing_unit_id = "TestComputingUnit";
 
-    int task_id = 123456;
-    world.send(1, mpi_tag, 0);
-    world.send(1, mpi_tag, task_id);
-    world.send(1, mpi_tag, std::make_tuple(1));
+    archive.insert(task.computing_unit, TestComputingUnit(3));
+    archive.insert(task.arguments, std::make_tuple(1));
 
-    for (int i = 0; i < 1000; i++)
+    world.send(1, mpi_tag, task);
+
+    // Arbitrary timing to fit data race
+    for (int i = 0; i < 10000; i++)
       archive.mpi_process();
 
-    int received_task_id;
-    world.recv(1, mpi_tag, received_task_id);
-    EXPECT_EQ(task_id, received_task_id);
-
-    int return_key;
-    world.recv(1, mpi_tag, return_key);
-    EXPECT_EQ(1, return_key);
-
-    int received_return;
-    archive.load(return_key, received_return);
+    int received_return = 0;
+    archive.load(task.result, received_return);
     EXPECT_EQ(3, received_return);
   }
   else {
+    world.recv(0, mpi_tag, task);
     TestComputingUnit unit;
-    unit.execute(world, archive, 1);
 
-    for (int i = 0; i < 1000; i++)
+    unit.execute(archive, task);
+
+    // Arbitrary timing to fit data race
+    for (int i = 0; i < 1000000; i++)
       archive.mpi_process();
   }
 }

@@ -22,6 +22,14 @@ namespace TaskDistribution {
              obj_id == other.obj_id;
     }
 
+    bool operator<(ArchiveKey const& other) const {
+      if (node_id < other.node_id)
+        return true;
+      if (node_id > other.node_id)
+        return false;
+      return obj_id < other.obj_id;
+    }
+
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
       ar & node_id;
@@ -34,6 +42,7 @@ namespace TaskDistribution {
     ArchiveKey computing_unit;
     ArchiveKey arguments;
     ArchiveKey result;
+    std::string computing_unit_id;
     bool should_save, run_locally;
 
     TaskEntry(): should_save(false), run_locally(true) { }
@@ -44,6 +53,7 @@ namespace TaskDistribution {
       ar & computing_unit;
       ar & arguments;
       ar & result;
+      ar & computing_unit_id;
     }
   };
 };

@@ -34,28 +34,18 @@ namespace TaskDistribution {
   // 5) send the task hash to link the result and task;
   // 6) send the result.
   template <class T>
-  template <class Key>
-  void ComputingUnit<T>::execute(boost::mpi::communicator& world,
-      MPIObjectArchive<Key>& archive, Key const& response_key) const {
-    Key obj_key;
-    world.recv(0, mpi_tag, obj_key);
-
+  void ComputingUnit<T>::execute(MPIObjectArchive<ArchiveKey>& archive,
+      TaskEntry const& task) const {
     T obj;
-    archive.load(obj_key, obj);
-
-    Key task_id;
-    world.recv(0, mpi_tag, task_id);
+    archive.load(task.computing_unit, obj);
 
     typename function_traits<T>::arg_tuple_type args;
-    world.recv(0, mpi_tag, args);
+    archive.load(task.arguments, args);
 
     typename function_traits<T>::return_type res;
     res = apply(obj, args, typename gens<function_traits<T>::arity>::type());
 
-    archive.insert(response_key, res);
-
-    world.send(0, mpi_tag, task_id);
-    world.send(0, mpi_tag, response_key);
+    archive.insert(task.result, res);
   }
 #endif
 };

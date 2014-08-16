@@ -9,21 +9,20 @@ class TestComputingUnit: public
     TestComputingUnit():
       TestComputingUnit(2) { }
 
-    TestComputingUnit(int val):
+    TestComputingUnit(int _val):
       TaskDistribution::ComputingUnit<TestComputingUnit>("TestComputingUnit"),
-      val_(val) { }
+      val(_val) { }
 
     int operator()(int const& new_val) const {
-      return val_ * new_val;
+      return val * new_val;
     }
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
-      ar & val_;
+      ar & val;
     }
 
-  private:
-    int val_;
+    int val;
 };
 
 #endif
