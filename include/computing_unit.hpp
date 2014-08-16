@@ -82,10 +82,6 @@ namespace TaskDistribution {
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) { }
 
-#if ENABLE_MPI
-      static int mpi_tag;
-#endif
-
       virtual void execute(ObjectArchive<ArchiveKey>& archive,
           TaskEntry const& task) const = 0;
 

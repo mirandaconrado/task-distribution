@@ -7,7 +7,6 @@ TEST(MPIComputingUnit, Execute) {
   MPIObjectArchive<TaskDistribution::ArchiveKey> archive(world);
 
   int mpi_tag = 20;
-  TaskDistribution::BaseComputingUnit::mpi_tag = mpi_tag;
 
   TaskDistribution::TaskEntry task;
 
