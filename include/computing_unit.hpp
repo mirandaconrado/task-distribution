@@ -37,13 +37,16 @@
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
-#include "archive_info.hpp"
 #include "mpi_object_archive.hpp"
+#else
+#include "object_archive.hpp"
 #endif
+
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
 
+#include "archive_info.hpp"
 #include "compile_utils.hpp"
 
 namespace TaskDistribution {
@@ -80,15 +83,11 @@ namespace TaskDistribution {
       void serialize(Archive& ar, const unsigned int version) { }
 
 #if ENABLE_MPI
-      // If MPI is allowed, we can't just call operator(). This provides a
-      // wrapper that must be run on the remote node to fetch all the
-      // information required and send the results back. All elements of
-      // TaskEntry must be valid.
-      virtual void execute(MPIObjectArchive<ArchiveKey>& archive,
-          TaskEntry const& task) const = 0;
-
       static int mpi_tag;
 #endif
+
+      virtual void execute(ObjectArchive<ArchiveKey>& archive,
+          TaskEntry const& task) const = 0;
 
     protected:
       // Allows access to id_
@@ -110,10 +109,8 @@ namespace TaskDistribution {
       // Registers the unit by placing a new copy into the units' map.
       explicit ComputingUnit(std::string const& name);
 
-#if ENABLE_MPI
-      virtual void execute(MPIObjectArchive<ArchiveKey>& archive,
+      virtual void execute(ObjectArchive<ArchiveKey>& archive,
           TaskEntry const& task) const;
-#endif
 
     private:
       // Internal constructor to avoid deadlock during unit register.

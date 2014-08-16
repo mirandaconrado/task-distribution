@@ -25,9 +25,8 @@ namespace TaskDistribution {
     return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
   }
 
-#if ENABLE_MPI
   template <class T>
-  void ComputingUnit<T>::execute(MPIObjectArchive<ArchiveKey>& archive,
+  void ComputingUnit<T>::execute(ObjectArchive<ArchiveKey>& archive,
       TaskEntry const& task) const {
     T obj;
     archive.load(task.computing_unit, obj);
@@ -40,7 +39,6 @@ namespace TaskDistribution {
 
     archive.insert(task.result, res);
   }
-#endif
 };
 
 #endif
