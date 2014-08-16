@@ -26,13 +26,6 @@ namespace TaskDistribution {
   }
 
 #if ENABLE_MPI
-  // In case of MPI, we must:
-  // 1) receive the member data for the Callable;
-  // 2) receive the task hash associated with this computation;
-  // 3) receive the arguments provided during task creation;
-  // 4) compute the result;
-  // 5) send the task hash to link the result and task;
-  // 6) send the result.
   template <class T>
   void ComputingUnit<T>::execute(MPIObjectArchive<ArchiveKey>& archive,
       TaskEntry const& task) const {

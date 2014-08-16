@@ -2,10 +2,11 @@
 
 namespace TaskDistribution {
   BaseComputingUnit const* BaseComputingUnit::get_by_id(std::string const& id) {
-    if (map_.find(id) == map_.end())
+    auto it = map_.find(id);
+    if (it == map_.end())
       return nullptr;
 
-    return map_[id];
+    return it->second;
   }
 
 #if ENABLE_MPI
