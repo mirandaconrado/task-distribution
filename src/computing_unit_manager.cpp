@@ -34,15 +34,12 @@ namespace TaskDistribution {
         auto status = status_opt.get();
 
         if (status.tag() == tags_.task_begin) {
-          ArchiveKey task_key;
-          world_.recv(status.source(), status.tag(), task_key);
-
           TaskEntry task;
-          archive_.load(task_key, task);
+          world_.recv(status.source(), status.tag(), task);
 
           process_local(task);
 
-          world_.isend(status.source(), tags_.task_end, task_key);
+          world_.isend(status.source(), tags_.task_end, task);
         }
         else
           stop = true;
@@ -53,7 +50,7 @@ namespace TaskDistribution {
   }
 
   void ComputingUnitManager::send_remote(TaskEntry const& task, int remote) {
-    world_.isend(remote, tags_.task_begin, task.task);
+    world_.isend(remote, tags_.task_begin, task);
   }
 #endif
 }
