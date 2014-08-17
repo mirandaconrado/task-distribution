@@ -1,4 +1,5 @@
 #include "test_computing_unit.hpp"
+
 #include "computing_unit_manager.hpp"
 
 #include <gtest/gtest.h>

@@ -35,12 +35,7 @@
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 
-#if ENABLE_MPI
-#include <boost/mpi/communicator.hpp>
-#include "mpi_object_archive.hpp"
-#else
 #include "object_archive.hpp"
-#endif
 
 #include <tuple>
 #include <type_traits>

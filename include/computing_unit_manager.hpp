@@ -1,6 +1,10 @@
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_MANAGER_HPP__
 
+#if ENABLE_MPI
+#include <boost/mpi/communicator.hpp>
+#endif
+
 #include "computing_unit.hpp"
 
 namespace TaskDistribution {

@@ -1,6 +1,9 @@
 #include "test_mpi.hpp"
 #include "test_computing_unit.hpp"
+
 #include "computing_unit_manager.hpp"
+
+#include "mpi_object_archive.hpp"
 
 #include <gtest/gtest.h>
 
