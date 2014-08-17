@@ -4,6 +4,7 @@ if(ENABLE_MPI)
 
   add_executable(run_tests_mpi.bin EXCLUDE_FROM_ALL
     computing_unit_mpi.cpp
+    computing_unit_manager_mpi.cpp
     test_mpi_main.cpp
   )
 

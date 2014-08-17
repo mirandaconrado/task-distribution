@@ -51,5 +51,9 @@ namespace TaskDistribution {
         stop = true;
     }
   }
+
+  void ComputingUnitManager::send_remote(TaskEntry const& task, int remote) {
+    world_.isend(remote, tags_.task_begin, task.task);
+  }
 #endif
 }

@@ -24,12 +24,13 @@ namespace TaskDistribution {
 
 #if ENABLE_MPI
       void process_remote();
+      void send_remote(TaskEntry const& task, int remote);
 #endif
 
     private:
 #if ENABLE_MPI
       boost::mpi::communicator& world_;
-      Tags const& tags_;
+      Tags tags_;
 #endif
       ObjectArchive<ArchiveKey>& archive_;
   };
