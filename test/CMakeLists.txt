@@ -16,6 +16,7 @@ else()
 
   add_executable(run_tests.bin EXCLUDE_FROM_ALL
     computing_unit.cpp
+    computing_unit_manager.cpp
   )
 
   target_link_libraries(run_tests.bin gtest gtest_main
