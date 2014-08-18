@@ -19,9 +19,9 @@ namespace TaskDistribution {
 
   void ComputingUnitManager::process_local(TaskEntry& task) {
 #if ENABLE_MPI
-    task.result = ArchiveKey::new_key(world_);
+    task.result_key = ArchiveKey::new_key(world_);
 #else
-    task.result = ArchiveKey::new_key();
+    task.result_key = ArchiveKey::new_key();
 #endif
 
     BaseComputingUnit const* unit =
@@ -53,7 +53,7 @@ namespace TaskDistribution {
           TaskEntry task;
           world_.recv(status.source(), status.tag(), task);
 
-          archive_.insert(task.task, task);
+          archive_.insert(task.task_key, task);
         }
         else
           stop = true;

@@ -18,15 +18,15 @@ TEST(ComputingUnitManager, ProcessRemote) {
   world.barrier();
 
   TaskDistribution::TaskEntry task;
-  task.task = {0, 1};
-  task.computing_unit = {0, 2};
-  task.arguments = {0, 3};
+  task.task_key = {0, 1};
+  task.computing_unit_key = {0, 2};
+  task.arguments_key = {0, 3};
   task.computing_unit_id = "TestComputingUnit";
 
   if (world.rank() == 0) {
-    archive.insert(task.task, task);
-    archive.insert(task.computing_unit, TestComputingUnit(3));
-    archive.insert(task.arguments, std::make_tuple(1));
+    archive.insert(task.task_key, task);
+    archive.insert(task.computing_unit_key, TestComputingUnit(3));
+    archive.insert(task.arguments_key, std::make_tuple(1));
 
     unit_manager.send_remote(task, 1);
   }
@@ -40,8 +40,8 @@ TEST(ComputingUnitManager, ProcessRemote) {
 
   if (world.rank() == 0) {
     int received_return = 0;
-    archive.load(task.task, task);
-    archive.load(task.result, received_return);
+    archive.load(task.task_key, task);
+    archive.load(task.result_key, received_return);
     EXPECT_EQ(3, received_return);
   }
   else {

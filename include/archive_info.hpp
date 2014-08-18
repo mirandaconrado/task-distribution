@@ -56,10 +56,10 @@ namespace TaskDistribution {
   };
 
   struct TaskEntry {
-    ArchiveKey task;
-    ArchiveKey computing_unit;
-    ArchiveKey arguments;
-    ArchiveKey result;
+    ArchiveKey task_key;
+    ArchiveKey computing_unit_key;
+    ArchiveKey arguments_key;
+    ArchiveKey result_key;
     std::string computing_unit_id;
     bool should_save, run_locally;
 
@@ -67,10 +67,10 @@ namespace TaskDistribution {
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
-      ar & task;
-      ar & computing_unit;
-      ar & arguments;
-      ar & result;
+      ar & task_key;
+      ar & computing_unit_key;
+      ar & arguments_key;
+      ar & result_key;
       ar & computing_unit_id;
     }
   };

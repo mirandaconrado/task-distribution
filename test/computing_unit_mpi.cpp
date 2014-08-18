@@ -14,14 +14,14 @@ TEST(MPIComputingUnit, Execute) {
   TaskDistribution::TaskEntry task;
 
   if (world.rank() == 0) {
-    task.task = {0, 1};
-    task.computing_unit = {0, 2};
-    task.arguments = {0, 3};
-    task.result = {0, 4};
+    task.task_key = {0, 1};
+    task.computing_unit_key = {0, 2};
+    task.arguments_key = {0, 3};
+    task.result_key = {0, 4};
     task.computing_unit_id = "TestComputingUnit";
 
-    archive.insert(task.computing_unit, TestComputingUnit(3));
-    archive.insert(task.arguments, std::make_tuple(1));
+    archive.insert(task.computing_unit_key, TestComputingUnit(3));
+    archive.insert(task.arguments_key, std::make_tuple(1));
 
     world.send(1, mpi_tag, task);
 
@@ -30,7 +30,7 @@ TEST(MPIComputingUnit, Execute) {
       archive.mpi_process();
 
     int received_return = 0;
-    archive.load(task.result, received_return);
+    archive.load(task.result_key, received_return);
     EXPECT_EQ(3, received_return);
   }
   else {

@@ -30,15 +30,15 @@ namespace TaskDistribution {
   void ComputingUnit<T>::execute(ObjectArchive<ArchiveKey>& archive,
       TaskEntry const& task) const {
     T obj;
-    archive.load(task.computing_unit, obj);
+    archive.load(task.computing_unit_key, obj);
 
     typename function_traits<T>::arg_tuple_type args;
-    archive.load(task.arguments, args);
+    archive.load(task.arguments_key, args);
 
     typename function_traits<T>::return_type res;
     res = apply(obj, args, typename gens<function_traits<T>::arity>::type());
 
-    archive.insert(task.result, res);
+    archive.insert(task.result_key, res);
   }
 };
 
