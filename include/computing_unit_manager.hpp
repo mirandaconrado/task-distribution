@@ -33,12 +33,16 @@
 namespace TaskDistribution {
   class ComputingUnitManager {
     public:
+#if ENABLE_MPI
+      // Tags that the managers use to communicate. The user can provide his own
+      // values as long as they are differente and aren't used in any other
+      // place.
       struct Tags {
         int task_begin = 7;
         int task_end = 8;
       };
 
-#if ENABLE_MPI
+      // Constructs with default tags.
       ComputingUnitManager(boost::mpi::communicator& world,
           MPIObjectArchive<ArchiveKey>& archive);
       ComputingUnitManager(Tags const& tags, boost::mpi::communicator& world,
@@ -47,10 +51,15 @@ namespace TaskDistribution {
       ComputingUnitManager(ObjectArchive<ArchiveKey>& archive);
 #endif
 
+      // Processes the task locally, so that loading task.result gives the
+      // result.
       void process_local(TaskEntry& task);
 
 #if ENABLE_MPI
+      // Processes messages from remote nodes.
       void process_remote();
+
+      // Requests remote node to compute the task.
       void send_remote(TaskEntry const& task, int remote);
 #endif
 

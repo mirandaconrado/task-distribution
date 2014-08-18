@@ -77,6 +77,8 @@ namespace TaskDistribution {
       template<class Archive>
       void serialize(Archive& ar, const unsigned int version) { }
 
+      // Loads the computing unit and arguments and stores the result in the
+      // archive. Assumes every ArchiveKey provided is valid.
       virtual void execute(ObjectArchive<ArchiveKey>& archive,
           TaskEntry const& task) const = 0;
 
