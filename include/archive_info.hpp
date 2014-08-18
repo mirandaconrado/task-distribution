@@ -1,6 +1,9 @@
 #ifndef __TASK_DISTRIBUTION__ARCHIVE_INFO_HPP__
 #define __TASK_DISTRIBUTION__ARCHIVE_INFO_HPP__
 
+#if ENABLE_MPI
+#include <boost/mpi/communicator.hpp>
+#endif
 #include <boost/functional/hash.hpp>
 #include <functional>
 
@@ -35,6 +38,21 @@ namespace TaskDistribution {
       ar & node_id;
       ar & obj_id;
     }
+
+    static size_t next_obj;
+
+#if ENABLE_MPI
+    static ArchiveKey new_key(boost::mpi::communicator& world) {
+      ArchiveKey ret({0, next_obj++});
+      ret.node_id = world.rank();
+      return ret;
+    }
+#else
+    static ArchiveKey new_key() {
+      ArchiveKey ret({0, next_obj++});
+      return ret;
+    }
+#endif
   };
 
   struct TaskEntry {

@@ -27,8 +27,8 @@ namespace TaskDistribution {
   void ComputingUnitManager::process_remote() {
     bool stop = false;
     while (!stop) {
-      // Probes world and, if something is found, check if it's a tag it can deal
-      // right here. Otherwise, stops.
+      // Probes world and, if something is found, check if it's a tag it can
+      // deal right here. Otherwise, stops.
       auto status_opt = world_.iprobe();
       if (status_opt) {
         auto status = status_opt.get();
@@ -37,9 +37,20 @@ namespace TaskDistribution {
           TaskEntry task;
           world_.recv(status.source(), status.tag(), task);
 
+          task.result = ArchiveKey::new_key(world_);
+
           process_local(task);
 
           world_.isend(status.source(), tags_.task_end, task);
+        }
+        else if (status.tag() == tags_.task_end) {
+          TaskEntry task;
+          world_.recv(status.source(), status.tag(), task);
+
+          archive_.insert(task.task, task);
+
+          std::string val;
+          archive_.load_raw(task.result, val, false);
         }
         else
           stop = true;

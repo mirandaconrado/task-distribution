@@ -21,7 +21,6 @@ TEST(ComputingUnitManager, ProcessRemote) {
   task.task = {0, 1};
   task.computing_unit = {0, 2};
   task.arguments = {0, 3};
-  task.result = {0, 4};
   task.computing_unit_id = "TestComputingUnit";
 
   if (world.rank() == 0) {
@@ -34,21 +33,16 @@ TEST(ComputingUnitManager, ProcessRemote) {
 
   world.barrier();
 
-  if (world.rank() == 0) {
-    // Arbitrary timing to fit data race
-    for (int i = 0; i < 100000; i++)
-      archive.mpi_process();
+  for (int i = 0; i < 100000; i++) {
+    archive.mpi_process();
+    unit_manager.process_remote();
   }
-  else
-    for (int i = 0; i < 100; i++) {
-      archive.mpi_process();
-      unit_manager.process_remote();
-    }
 
   world.barrier();
 
   if (world.rank() == 0) {
     int received_return = 0;
+    archive.load(task.task, task);
     archive.load(task.result, received_return);
     EXPECT_EQ(3, received_return);
   }
