@@ -1,8 +1,31 @@
+// Each task carries information about the computing unit used, but a wrapping
+// is needed around the execution. This manager provides the wrapping.
+//
+// If the computation must be performed locally, the method "process_local" must
+// be called with the task. The manager then will find the correct computing
+// unit, create a new key for the result and execute the computation, which will
+// load the data and store the result.
+//
+// For remote operation, the manager can send a task to a specific node using
+// "send_remote". A node must call "process_remote" to process the MPI
+// communication. There are two possible cases:
+//
+// 1) The manager receives a task_begin tag, which indicates that it must run
+// the task locally. The task is computed using "process_local" and, after it
+// finished, the requesting node is notified.
+//
+// 2) The manager receives a task_end tag, which indicates that a task it
+// requested finished running. In this case, the manager updates the result key
+// in the task, which allows the result to be loaded.
+//
+// Hence both sides must call "process_remote".
+
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_MANAGER_HPP__
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
+#include "mpi_object_archive.hpp"
 #endif
 
 #include "computing_unit.hpp"
@@ -17,14 +40,14 @@ namespace TaskDistribution {
 
 #if ENABLE_MPI
       ComputingUnitManager(boost::mpi::communicator& world,
-          ObjectArchive<ArchiveKey>& archive);
+          MPIObjectArchive<ArchiveKey>& archive);
       ComputingUnitManager(Tags const& tags, boost::mpi::communicator& world,
-          ObjectArchive<ArchiveKey>& archive);
+          MPIObjectArchive<ArchiveKey>& archive);
 #else
       ComputingUnitManager(ObjectArchive<ArchiveKey>& archive);
 #endif
 
-      void process_local(TaskEntry const& task);
+      void process_local(TaskEntry& task);
 
 #if ENABLE_MPI
       void process_remote();
@@ -35,8 +58,10 @@ namespace TaskDistribution {
 #if ENABLE_MPI
       boost::mpi::communicator& world_;
       Tags tags_;
-#endif
+      MPIObjectArchive<ArchiveKey>& archive_;
+#else
       ObjectArchive<ArchiveKey>& archive_;
+#endif
   };
 };
 

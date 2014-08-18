@@ -3,11 +3,11 @@
 namespace TaskDistribution {
 #if ENABLE_MPI
   ComputingUnitManager::ComputingUnitManager(boost::mpi::communicator& world,
-      ObjectArchive<ArchiveKey>& archive):
+      MPIObjectArchive<ArchiveKey>& archive):
     ComputingUnitManager(Tags(), world, archive) { }
 
   ComputingUnitManager::ComputingUnitManager(Tags const& tags,
-      boost::mpi::communicator& world, ObjectArchive<ArchiveKey>& archive):
+      boost::mpi::communicator& world, MPIObjectArchive<ArchiveKey>& archive):
     world_(world),
     tags_(tags),
     archive_(archive) { }
@@ -17,7 +17,13 @@ namespace TaskDistribution {
     archive_(archive) { }
 #endif
 
-  void ComputingUnitManager::process_local(TaskEntry const& task) {
+  void ComputingUnitManager::process_local(TaskEntry& task) {
+#if ENABLE_MPI
+    task.result = ArchiveKey::new_key(world_);
+#else
+    task.result = ArchiveKey::new_key();
+#endif
+
     BaseComputingUnit const* unit =
       BaseComputingUnit::get_by_id(task.computing_unit_id);
     unit->execute(archive_, task);
@@ -25,6 +31,8 @@ namespace TaskDistribution {
 
 #if ENABLE_MPI
   void ComputingUnitManager::process_remote() {
+    archive_.mpi_process();
+
     bool stop = false;
     while (!stop) {
       // Probes world and, if something is found, check if it's a tag it can
@@ -37,8 +45,6 @@ namespace TaskDistribution {
           TaskEntry task;
           world_.recv(status.source(), status.tag(), task);
 
-          task.result = ArchiveKey::new_key(world_);
-
           process_local(task);
 
           world_.isend(status.source(), tags_.task_end, task);
@@ -48,9 +54,6 @@ namespace TaskDistribution {
           world_.recv(status.source(), status.tag(), task);
 
           archive_.insert(task.task, task);
-
-          std::string val;
-          archive_.load_raw(task.result, val, false);
         }
         else
           stop = true;

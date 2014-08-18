@@ -33,10 +33,8 @@ TEST(ComputingUnitManager, ProcessRemote) {
 
   world.barrier();
 
-  for (int i = 0; i < 100000; i++) {
-    archive.mpi_process();
+  for (int i = 0; i < 100000; i++)
     unit_manager.process_remote();
-  }
 
   world.barrier();
 
