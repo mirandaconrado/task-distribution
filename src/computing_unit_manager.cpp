@@ -28,6 +28,7 @@ namespace TaskDistribution {
 #endif
     }
 
+    // Gets the correct computing unit and executes it
     BaseComputingUnit const* unit =
       BaseComputingUnit::get_by_id(task.computing_unit_id);
     unit->execute(archive_, task, *this);
