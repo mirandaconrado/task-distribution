@@ -78,6 +78,11 @@ namespace TaskDistribution {
   };
 };
 
+#if ENABLE_MPI
+BOOST_IS_MPI_DATATYPE(TaskDistribution::ArchiveKey);
+BOOST_IS_MPI_DATATYPE(TaskDistribution::TaskEntry);
+#endif
+
 namespace std {
   template<>
   struct hash<TaskDistribution::ArchiveKey> {
