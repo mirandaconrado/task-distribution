@@ -26,14 +26,68 @@ namespace TaskDistribution {
     return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
   }
 
+  template <std::size_t I, class T1, class T2>
+  typename std::enable_if<(I == std::tuple_size<T1>::value ||
+                           I == std::tuple_size<T2>::value), void>::type
+  load_tasks_arguments_detail(T1&, T2 const&, ObjectArchive<ArchiveKey>&,
+      ComputingUnitManager&) { }
+
+  template <std::size_t I, class T1, class T2>
+  typename std::enable_if<(I < std::tuple_size<T1>::value &&
+                           I < std::tuple_size<T2>::value), void>::type
+  load_tasks_arguments_detail(T1& t1, T2 const& t2,
+      ObjectArchive<ArchiveKey>& archive, ComputingUnitManager& manager) {
+    ArchiveKey task_key = std::get<I>(t2);
+    if (task_key.is_valid()) {
+      TaskEntry entry;
+      archive.load(task_key, entry);
+
+      // If key is invalid, then compute locally the result and store at the
+      // invalid position
+      if (!entry.should_save || !entry.result_key.is_valid())
+        manager.process_local(entry);
+
+      // Loads result even is key is invalid, as it contains the temporary
+      // result
+      typename std::tuple_element<I, T1>::type result;
+      archive.load(entry.result_key, result);
+
+      if (!entry.result_key.is_valid())
+        archive.remove(entry.result_key);
+
+      std::get<I>(t1) = result;
+    }
+
+    load_tasks_arguments_detail<I + 1>(t1, t2, archive, manager);
+  }
+
+  template <class T1, class T2>
+  typename std::enable_if<std::tuple_size<T1>::value ==
+                          std::tuple_size<T2>::value, void>::type
+  load_tasks_arguments(T1& t1, T2 const& t2,
+      ObjectArchive<ArchiveKey>& archive, ComputingUnitManager& manager) {
+    load_tasks_arguments_detail<0>(t1,t2,archive, manager);
+  }
+
+
   template <class T>
   void ComputingUnit<T>::execute(ObjectArchive<ArchiveKey>& archive,
-      TaskEntry const& task) const {
+      TaskEntry const& task, ComputingUnitManager& manager) const {
     T obj;
-    archive.load(task.computing_unit_key, obj);
+    if (task.computing_unit_key.is_valid())
+      archive.load(task.computing_unit_key, obj);
 
     typename function_traits<T>::arg_tuple_type args;
-    archive.load(task.arguments_key, args);
+    if (task.arguments_key.is_valid())
+      archive.load(task.arguments_key, args);
+
+    if (task.arguments_tasks_key.is_valid()) {
+      typename repeated_tuple<std::tuple_size<decltype(args)>::value,
+               ArchiveKey>::type tasks_tuple;
+      archive.load(task.arguments_tasks_key, tasks_tuple);
+
+      load_tasks_arguments(args, tasks_tuple, archive, manager);
+    }
 
     typename function_traits<T>::return_type res;
     res = apply(obj, args, typename gens<function_traits<T>::arity>::type());

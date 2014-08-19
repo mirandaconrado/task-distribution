@@ -28,7 +28,7 @@
 #include "mpi_object_archive.hpp"
 #endif
 
-#include "computing_unit.hpp"
+#include "archive_info.hpp"
 
 namespace TaskDistribution {
   class ComputingUnitManager {

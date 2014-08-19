@@ -1,5 +1,7 @@
 #include "computing_unit_manager.hpp"
 
+#include "computing_unit.hpp"
+
 namespace TaskDistribution {
 #if ENABLE_MPI
   ComputingUnitManager::ComputingUnitManager(boost::mpi::communicator& world,
@@ -18,15 +20,17 @@ namespace TaskDistribution {
 #endif
 
   void ComputingUnitManager::process_local(TaskEntry& task) {
+    if (task.should_save) {
 #if ENABLE_MPI
-    task.result_key = ArchiveKey::new_key(world_);
+      task.result_key = ArchiveKey::new_key(world_);
 #else
-    task.result_key = ArchiveKey::new_key();
+      task.result_key = ArchiveKey::new_key();
 #endif
+    }
 
     BaseComputingUnit const* unit =
       BaseComputingUnit::get_by_id(task.computing_unit_id);
-    unit->execute(archive_, task);
+    unit->execute(archive_, task, *this);
   }
 
 #if ENABLE_MPI

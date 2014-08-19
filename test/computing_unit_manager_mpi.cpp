@@ -49,4 +49,6 @@ TEST(ComputingUnitManager, ProcessRemote) {
     for (int i = 0; i < 1000000; i++)
       archive.mpi_process();
   }
+
+  world.barrier();
 }

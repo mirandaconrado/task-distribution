@@ -103,7 +103,7 @@ namespace TaskDistribution {
   template <size_t... S> struct gens<0, S...> { typedef seq<S...> type; };
 
   // Mine
-  template <size_t I, class From, class To>
+  /*template <size_t I, class From, class To>
   struct is_tuple_convertible_ {
     static constexpr bool value =
       std::is_convertible<
@@ -169,6 +169,18 @@ namespace TaskDistribution {
     typedef
       typename convert_tuple_<std::tuple_size<To>::value, To, From...>::type
       type;
+  };*/
+
+  // Mine
+  template <size_t N, class T, class... Ts>
+  struct repeated_tuple_: repeated_tuple_<N-1, T, Ts...> { };
+
+  template <class T, class... Ts>
+  struct repeated_tuple_<0, T, Ts...> { typedef std::tuple<T, Ts...> type; };
+
+  template <size_t I, class T>
+  struct repeated_tuple {
+    using type = typename repeated_tuple_<I, T>::type;
   };
 };
 

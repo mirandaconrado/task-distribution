@@ -43,6 +43,7 @@
 
 #include "archive_info.hpp"
 #include "compile_utils.hpp"
+#include "computing_unit_manager.hpp"
 
 namespace TaskDistribution {
   // Abstract class to allow us to have pointers to units. Shouldn't be used
@@ -80,7 +81,7 @@ namespace TaskDistribution {
       // Loads the computing unit and arguments and stores the result in the
       // archive. Assumes every ArchiveKey provided is valid.
       virtual void execute(ObjectArchive<ArchiveKey>& archive,
-          TaskEntry const& task) const = 0;
+          TaskEntry const& task, ComputingUnitManager& manager) const = 0;
 
     protected:
       // Allows access to id_
@@ -103,7 +104,7 @@ namespace TaskDistribution {
       explicit ComputingUnit(std::string const& name);
 
       virtual void execute(ObjectArchive<ArchiveKey>& archive,
-          TaskEntry const& task) const;
+          TaskEntry const& task, ComputingUnitManager& manager) const;
 
     private:
       // Internal constructor to avoid deadlock during unit register.
