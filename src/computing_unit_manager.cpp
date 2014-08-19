@@ -29,8 +29,10 @@ namespace TaskDistribution {
     }
 
     // Gets the correct computing unit and executes it
+    std::string computing_unit_id;
+    archive_.load(task.computing_unit_id_key, computing_unit_id);
     BaseComputingUnit const* unit =
-      BaseComputingUnit::get_by_id(task.computing_unit_id);
+      BaseComputingUnit::get_by_id(computing_unit_id);
     unit->execute(archive_, task, *this);
   }
 

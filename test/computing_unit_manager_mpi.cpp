@@ -21,12 +21,13 @@ TEST(ComputingUnitManager, ProcessRemote) {
   task.task_key = {0, 1};
   task.computing_unit_key = {0, 2};
   task.arguments_key = {0, 3};
-  task.computing_unit_id = "TestComputingUnit";
+  task.computing_unit_id_key = {0, 4};
 
   if (world.rank() == 0) {
     archive.insert(task.task_key, task);
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_key, std::make_tuple(1));
+    archive.insert(task.computing_unit_id_key, unit.get_id());
 
     unit_manager.send_remote(task, 1);
   }

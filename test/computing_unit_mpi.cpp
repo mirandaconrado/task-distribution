@@ -21,10 +21,11 @@ TEST(MPIComputingUnit, Execute) {
     task.computing_unit_key = {0, 2};
     task.arguments_key = {0, 3};
     task.result_key = {0, 4};
-    task.computing_unit_id = unit.get_id();
+    task.computing_unit_id_key = {0, 5};
 
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_key, std::make_tuple(1));
+    archive.insert(task.computing_unit_id_key, unit.get_id());
 
     world.send(1, mpi_tag, task);
 
@@ -70,11 +71,12 @@ TEST(MPIComputingUnit, ExecuteWithTaskArgument) {
     task.computing_unit_key = {0, 4};
     task.arguments_tasks_key = {0, 5};
     task.result_key = {0, 6};
-    task.computing_unit_id = unit.get_id();
+    task.computing_unit_id_key = {0, 7};
 
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_tasks_key,
         std::make_tuple(task_arg.task_key));
+    archive.insert(task.computing_unit_id_key, unit.get_id());
 
     world.send(1, mpi_tag, task);
 
@@ -114,21 +116,23 @@ TEST(MPIComputingUnit, ExecuteWithIdentity) {
   if (world.rank() == 0) {
     task_identity.task_key = {0, 1};
     task_identity.arguments_key = {0, 2};
-    task_identity.computing_unit_id = identity_unit.get_id();
+    task_identity.computing_unit_id_key = {0, 3};
     task_identity.should_save = false;
 
     archive.insert(task_identity.task_key, task_identity);
     archive.insert(task_identity.arguments_key, std::make_tuple((int)1));
+    archive.insert(task_identity.computing_unit_id_key, identity_unit.get_id());
 
     task.task_key = {0, 4};
     task.computing_unit_key = {0, 5};
     task.arguments_tasks_key = {0, 6};
     task.result_key = {0, 7};
-    task.computing_unit_id = unit.get_id();
+    task.computing_unit_id_key = {0, 8};
 
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_tasks_key,
         std::make_tuple(task_identity.task_key));
+    archive.insert(task.computing_unit_id_key, unit.get_id());
 
     world.send(1, mpi_tag, task);
 

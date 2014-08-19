@@ -61,7 +61,7 @@ namespace TaskDistribution {
     ArchiveKey arguments_key;
     ArchiveKey arguments_tasks_key;
     ArchiveKey result_key;
-    std::string computing_unit_id;
+    ArchiveKey computing_unit_id_key;
     bool should_save, run_locally;
 
     TaskEntry(): should_save(true), run_locally(false) { }
@@ -73,7 +73,7 @@ namespace TaskDistribution {
       ar & arguments_key;
       ar & arguments_tasks_key;
       ar & result_key;
-      ar & computing_unit_id;
+      ar & computing_unit_id_key;
     }
   };
 };
