@@ -34,6 +34,8 @@ namespace TaskDistribution {
     BaseComputingUnit const* unit =
       BaseComputingUnit::get_by_id(computing_unit_id);
     unit->execute(archive_, task, *this);
+
+    archive_.insert(task.task_key, task);
   }
 
 #if ENABLE_MPI
@@ -54,13 +56,13 @@ namespace TaskDistribution {
 
           process_local(task);
 
-          world_.isend(status.source(), tags_.task_end, task);
+          world_.isend(status.source(), tags_.task_end, task.task_key);
         }
         else if (status.tag() == tags_.task_end) {
-          TaskEntry task;
-          world_.recv(status.source(), status.tag(), task);
+          ArchiveKey task_key;
+          world_.recv(status.source(), status.tag(), task_key);
 
-          archive_.insert(task.task_key, task);
+          tasks_ended_.push_back(task_key);
         }
         else
           stop = true;
@@ -72,6 +74,14 @@ namespace TaskDistribution {
 
   void ComputingUnitManager::send_remote(TaskEntry const& task, int remote) {
     world_.isend(remote, tags_.task_begin, task);
+  }
+
+  std::list<ArchiveKey> const& ComputingUnitManager::get_tasks_ended() const {
+    return tasks_ended_;
+  }
+
+  void ComputingUnitManager::clear_tasks_ended() {
+    tasks_ended_.clear();
   }
 #endif
 }

@@ -25,10 +25,12 @@
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
+#include <list>
 #include "mpi_object_archive.hpp"
 #endif
 
 #include "archive_info.hpp"
+#include "object_archive.hpp"
 
 namespace TaskDistribution {
   class ComputingUnitManager {
@@ -61,6 +63,10 @@ namespace TaskDistribution {
 
       // Requests remote node to compute the task.
       void send_remote(TaskEntry const& task, int remote);
+
+      // Interface for the list of tasks that have finished.
+      std::list<ArchiveKey> const& get_tasks_ended() const;
+      void clear_tasks_ended();
 #endif
 
     private:
@@ -68,6 +74,7 @@ namespace TaskDistribution {
       boost::mpi::communicator& world_;
       Tags tags_;
       MPIObjectArchive<ArchiveKey>& archive_;
+      std::list<ArchiveKey> tasks_ended_;
 #else
       ObjectArchive<ArchiveKey>& archive_;
 #endif
