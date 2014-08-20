@@ -9,28 +9,32 @@ TEST(ComputingUnitManager, ProcessLocal) {
   TaskDistribution::ComputingUnitManager unit_manager(archive);
 
   TestComputingUnit unit(3);
-  archive.insert({0, 0}, unit);
+  TaskDistribution::ArchiveKey unit_key =
+    TaskDistribution::ArchiveKey::new_key();
+  archive.insert(unit_key, unit);
 
-  for (size_t i = 1; i <= 10; i++) {
+  std::vector<TaskDistribution::TaskEntry> tasks;
+
+  for (size_t i = 0; i < 5; i++) {
     TaskDistribution::TaskEntry task;
-    task.task = {0, i};
-    task.computing_unit = {0, 0};
-    archive.insert({0, i+10}, std::make_tuple((int)i));
-    task.arguments = {0, i+10};
-    task.result = {0, i+20};
-    task.computing_unit_id = unit.get_id();
-    archive.insert(task.task, task);
+    task.task_key = TaskDistribution::ArchiveKey::new_key();
+    task.computing_unit_key = unit_key;
+    task.arguments_key = TaskDistribution::ArchiveKey::new_key();
+    task.computing_unit_id_key = TaskDistribution::ArchiveKey::new_key();
+
+    archive.insert(task.task_key, task);
+    archive.insert(task.arguments_key, std::make_tuple((int)i));
+    archive.insert(task.computing_unit_id_key, unit.get_id());
+
+    tasks.push_back(task);
   }
 
-  for (size_t i = 1; i <= 10; i++) {
-    TaskDistribution::TaskEntry task;
-    archive.load({0, i}, task);
-    unit_manager.process_local(task);
-  }
+  for (size_t i = 0; i < 5; i++)
+    unit_manager.process_local(tasks[i]);
 
-  for (size_t i = 1; i <= 10; i++) {
+  for (size_t i = 0; i < 5; i++) {
     int result = 0;
-    archive.load({0, i+20}, result);
+    archive.load(tasks[i].result_key, result);
     EXPECT_EQ(3*i, result);
   }
 }
