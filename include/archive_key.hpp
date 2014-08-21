@@ -1,3 +1,15 @@
+// Everything is stores in an ObjectArchive and must use the same key. This file
+// defines the key.
+//
+// Each key is composed on the node that created it (0 if MPI is disabled) and a
+// unique object id, which can be obtained using the method "new_key".
+//
+// The key can also be used as key for std containers, allowing easy
+// integration of many different storage classes.
+//
+// By default, a key is considered invalid if the object associated with it has
+// id == 0.
+
 #ifndef __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
 #define __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
 
