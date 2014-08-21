@@ -41,9 +41,10 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "archive_info.hpp"
+#include "archive_key.hpp"
 #include "compile_utils.hpp"
 #include "computing_unit_manager.hpp"
+#include "task_entry.hpp"
 
 namespace TaskDistribution {
   // Abstract class to allow us to have pointers to units. Shouldn't be used

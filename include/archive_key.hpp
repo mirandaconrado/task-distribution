@@ -1,5 +1,5 @@
-#ifndef __TASK_DISTRIBUTION__ARCHIVE_INFO_HPP__
-#define __TASK_DISTRIBUTION__ARCHIVE_INFO_HPP__
+#ifndef __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
+#define __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
@@ -8,10 +8,12 @@
 #include <functional>
 
 namespace TaskDistribution {
+  // General key for the archive used.
   struct ArchiveKey {
     size_t node_id;
     size_t obj_id;
 
+    // Constructs invalid keys as default.
     ArchiveKey(): node_id(0), obj_id(0) { }
 
     ArchiveKey(size_t node, size_t obj):
@@ -39,50 +41,31 @@ namespace TaskDistribution {
       ar & obj_id;
     }
 
-    static size_t next_obj;
-
+    // Creates a new unique key. The method has an internal counter to guarantee
+    // that each key created is unique.
 #if ENABLE_MPI
     static ArchiveKey new_key(boost::mpi::communicator& world) {
+      static size_t next_obj = 1;
       ArchiveKey ret({0, next_obj++});
       ret.node_id = world.rank();
       return ret;
     }
 #else
     static ArchiveKey new_key() {
+      static size_t next_obj = 1;
       ArchiveKey ret({0, next_obj++});
       return ret;
     }
 #endif
   };
-
-  struct TaskEntry {
-    ArchiveKey task_key;
-    ArchiveKey computing_unit_key;
-    ArchiveKey arguments_key;
-    ArchiveKey arguments_tasks_key;
-    ArchiveKey result_key;
-    ArchiveKey computing_unit_id_key;
-    bool should_save, run_locally;
-
-    TaskEntry(): should_save(true), run_locally(false) { }
-
-    template<class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-      ar & task_key;
-      ar & computing_unit_key;
-      ar & arguments_key;
-      ar & arguments_tasks_key;
-      ar & result_key;
-      ar & computing_unit_id_key;
-    }
-  };
 };
 
+// Enables faster MPI transmission.
 #if ENABLE_MPI
 BOOST_IS_MPI_DATATYPE(TaskDistribution::ArchiveKey);
-BOOST_IS_MPI_DATATYPE(TaskDistribution::TaskEntry);
 #endif
 
+// Allows ArchiveKey to be used as key in std::unordered_*.
 namespace std {
   template<>
   struct hash<TaskDistribution::ArchiveKey> {

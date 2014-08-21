@@ -1,5 +1,4 @@
 add_library(task_distribution
-  archive_info.cpp
   computing_unit.cpp
   computing_unit_manager.cpp
 )
