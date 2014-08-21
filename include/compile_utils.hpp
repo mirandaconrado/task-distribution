@@ -173,10 +173,10 @@ namespace TaskDistribution {
 
   // Mine
   template <size_t N, class T, class... Ts>
-  struct repeated_tuple_: repeated_tuple_<N-1, T, Ts...> { };
+  struct repeated_tuple_: repeated_tuple_<N-1, T, T, Ts...> { };
 
   template <class T, class... Ts>
-  struct repeated_tuple_<0, T, Ts...> { typedef std::tuple<T, Ts...> type; };
+  struct repeated_tuple_<0, T, Ts...> { typedef std::tuple<Ts...> type; };
 
   template <size_t I, class T>
   struct repeated_tuple {
