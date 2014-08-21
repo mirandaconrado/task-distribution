@@ -20,6 +20,9 @@ namespace TaskDistribution {
 #endif
 
   void ComputingUnitManager::process_local(TaskEntry& task) {
+    if (task.result_key.is_valid())
+      return;
+
     if (task.should_save) {
 #if ENABLE_MPI
       task.result_key = ArchiveKey::new_key(world_);
