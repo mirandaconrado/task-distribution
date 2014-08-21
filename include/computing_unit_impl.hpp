@@ -12,12 +12,13 @@ namespace TaskDistribution {
   ComputingUnit<T>::ComputingUnit(std::string const& name) {
     // If we don't already have this kind of Callable, create a copy to store at
     // the map, so this one can be freed whenever the user chooses.
-    if (map_.find(name) == map_.end()) {
-      auto it = map_.emplace(name, new ComputingUnit<T>()).first;
+    if (id_map_.find(name) == id_map_.end()) {
+      ComputingUnit<T>* unit = new ComputingUnit<T>();
+      auto it = id_map_.emplace(name, unit).first;
       id_ = &it->first;
-      it->second->id_ = id_;
+      unit->id_ = id_;
     }
-    id_ = &map_.find(name)->first;
+    id_ = &id_map_.find(name)->first;
   }
 
   template <class F, class Tuple, size_t... S>
@@ -37,7 +38,7 @@ namespace TaskDistribution {
                            I < std::tuple_size<T2>::value), void>::type
   load_tasks_arguments_detail(T1& t1, T2 const& t2,
       ObjectArchive<ArchiveKey>& archive, ComputingUnitManager& manager) {
-    ArchiveKey task_key = std::get<I>(t2);
+    ArchiveKey const& task_key = std::get<I>(t2);
     if (task_key.is_valid()) {
       TaskEntry entry;
       archive.load(task_key, entry);

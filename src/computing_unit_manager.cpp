@@ -31,11 +31,20 @@ namespace TaskDistribution {
 #endif
     }
 
+    // Assumes that the computing unit is defined. TODO: remove this assumption.
+    BaseComputingUnit const* unit;
+
     // Gets the correct computing unit and executes it
-    std::string computing_unit_id;
-    archive_.load(task.computing_unit_id_key, computing_unit_id);
-    BaseComputingUnit const* unit =
-      BaseComputingUnit::get_by_id(computing_unit_id);
+    unit = BaseComputingUnit::get_by_key(task.computing_unit_id_key);
+    if (unit == nullptr) {
+      std::string computing_unit_id;
+      archive_.load(task.computing_unit_id_key, computing_unit_id);
+      // Assumes true is returned always.
+      BaseComputingUnit::bind_key(computing_unit_id,
+          task.computing_unit_id_key);
+      unit = BaseComputingUnit::get_by_key(task.computing_unit_id_key);
+    }
+
     unit->execute(archive_, task, *this);
 
     archive_.insert(task.task_key, task);

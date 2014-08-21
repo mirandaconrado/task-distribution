@@ -16,9 +16,11 @@
 //
 // Caveats:
 // 1) Only the return of operator() is considered as the result, so any changes
-// to the argument are ignored.
+// to the argument are ignored;
 // 2) All arguments and the return of operator() must be serializable through
-// boost.
+// boost;
+// 3) operator() must be declared as const, to ensure no modifications are
+// performed.
 //
 // Besides these requirements, the user has control over the following options:
 // 1) whether the object must run on the master node, chosen through the method
@@ -61,8 +63,17 @@ namespace TaskDistribution {
         return true;
       }
 
-      // Static method to fetch the correct kind of unit for an id.
+      // Static method to fetch the correct kind of unit for an id. Returns NULL
+      // if not found.
       static BaseComputingUnit const* get_by_id(std::string const& id);
+
+      // Static method to fetch the correct kind of unit for a key. Returns NULL
+      // if not found.
+      static BaseComputingUnit const* get_by_key(ArchiveKey const& key);
+
+      // Binds a given id with a key. Multiple keys may be bound to the same id.
+      // Returns true if the id was found.
+      static bool bind_key(std::string const& id, ArchiveKey const& key);
 
       // Gets the id associated with this kind of unit.
       std::string const& get_id() const {
@@ -90,8 +101,10 @@ namespace TaskDistribution {
 
       std::string const* id_;
 
-      // Map between hashes and units.
-      static std::unordered_map<std::string,BaseComputingUnit*> map_;
+      // Map between ids and units.
+      static std::unordered_map<std::string,BaseComputingUnit const*> id_map_;
+      // Map between keys and units.
+      static std::unordered_map<ArchiveKey,BaseComputingUnit const*> key_map_;
   };
 
   // Class that should be inherited by the user's units. For an example on how
