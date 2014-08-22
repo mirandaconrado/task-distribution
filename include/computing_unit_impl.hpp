@@ -21,12 +21,6 @@ namespace TaskDistribution {
     id_ = &id_map_.find(name)->first;
   }
 
-  template <class F, class Tuple, size_t... S>
-  typename function_traits<F>::return_type
-  apply(F&& f, Tuple&& args, seq<S...>) {
-    return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
-  }
-
   template <std::size_t I, class T1, class T2>
   typename std::enable_if<(I == std::tuple_size<T1>::value ||
                            I == std::tuple_size<T2>::value), void>::type
@@ -94,8 +88,8 @@ namespace TaskDistribution {
     }
 
     // Performs the computation
-    typename function_traits<T>::return_type res;
-    res = apply(obj, args, typename gens<function_traits<T>::arity>::type());
+    typename function_traits<T>::return_type res(
+      apply(obj, args, typename gens<function_traits<T>::arity>::type()));
 
     // Stores result, even if result_key.is_valid() == false
     archive.insert(task.result_key, res);

@@ -96,6 +96,13 @@ namespace TaskDistribution {
           TaskEntry const& task, ComputingUnitManager& manager) const = 0;
 
     protected:
+      // Expands the tuple and calls the functor
+      template <class F, class Tuple, size_t... S>
+      static typename function_traits<F>::return_type
+      apply(F&& f, Tuple&& args, seq<S...>) {
+        return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
+      }
+
       // Allows access to id_
       template <class> friend class ComputingUnit;
 
