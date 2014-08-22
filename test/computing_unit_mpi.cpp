@@ -17,11 +17,13 @@ TEST(MPIComputingUnit, Execute) {
   TaskDistribution::TaskEntry task;
 
   if (world.rank() == 0) {
-    task.task_key = {0, 1};
-    task.computing_unit_key = {0, 2};
-    task.arguments_key = {0, 3};
-    task.result_key = {0, 4};
-    task.computing_unit_id_key = {0, 5};
+    task.task_key = {0, 1, TaskDistribution::ArchiveKey::Task};
+    task.computing_unit_key = {0, 2,
+      TaskDistribution::ArchiveKey::ComputingUnit};
+    task.arguments_key = {0, 3, TaskDistribution::ArchiveKey::Arguments};
+    task.result_key = {0, 4, TaskDistribution::ArchiveKey::Result};
+    task.computing_unit_id_key = {0, 5,
+      TaskDistribution::ArchiveKey::ComputingUnitId};
 
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_key, std::make_tuple(1));
@@ -61,17 +63,19 @@ TEST(MPIComputingUnit, ExecuteWithTaskArgument) {
   TaskDistribution::TaskEntry task, task_arg;
 
   if (world.rank() == 0) {
-    task_arg.task_key = {0, 1};
-    task_arg.result_key = {0, 2};
+    task_arg.task_key = {0, 1, TaskDistribution::ArchiveKey::Task};
+    task_arg.result_key = {0, 2, TaskDistribution::ArchiveKey::Result};
 
     archive.insert(task_arg.task_key, task_arg);
     archive.insert(task_arg.result_key, (int)1);
 
-    task.task_key = {0, 3};
-    task.computing_unit_key = {0, 4};
-    task.arguments_tasks_key = {0, 5};
-    task.result_key = {0, 6};
-    task.computing_unit_id_key = {0, 7};
+    task.task_key = {0, 3, TaskDistribution::ArchiveKey::Task};
+    task.computing_unit_key = {0, 4,
+      TaskDistribution::ArchiveKey::ComputingUnit};
+    task.arguments_tasks_key = {0, 5, TaskDistribution::ArchiveKey::Arguments};
+    task.result_key = {0, 6, TaskDistribution::ArchiveKey::Result};
+    task.computing_unit_id_key = {0, 7,
+      TaskDistribution::ArchiveKey::ComputingUnitId};
 
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_tasks_key,
@@ -114,20 +118,24 @@ TEST(MPIComputingUnit, ExecuteWithIdentity) {
   TaskDistribution::TaskEntry task, task_identity;
 
   if (world.rank() == 0) {
-    task_identity.task_key = {0, 1};
-    task_identity.arguments_key = {0, 2};
-    task_identity.computing_unit_id_key = {0, 3};
+    task_identity.task_key = {0, 1, TaskDistribution::ArchiveKey::Task};
+    task_identity.arguments_key = {0, 2,
+      TaskDistribution::ArchiveKey::Arguments};
+    task_identity.computing_unit_id_key = {0, 3,
+      TaskDistribution::ArchiveKey::ComputingUnitId};
     task_identity.should_save = false;
 
     archive.insert(task_identity.task_key, task_identity);
     archive.insert(task_identity.arguments_key, std::make_tuple((int)1));
     archive.insert(task_identity.computing_unit_id_key, identity_unit.get_id());
 
-    task.task_key = {0, 4};
-    task.computing_unit_key = {0, 5};
-    task.arguments_tasks_key = {0, 6};
-    task.result_key = {0, 7};
-    task.computing_unit_id_key = {0, 8};
+    task.task_key = {0, 4, TaskDistribution::ArchiveKey::Task};
+    task.computing_unit_key = {0, 5,
+      TaskDistribution::ArchiveKey::ComputingUnit};
+    task.arguments_tasks_key = {0, 6, TaskDistribution::ArchiveKey::Arguments};
+    task.result_key = {0, 7, TaskDistribution::ArchiveKey::Result};
+    task.computing_unit_id_key = {0, 8,
+      TaskDistribution::ArchiveKey::ComputingUnitId};
 
     archive.insert(task.computing_unit_key, TestComputingUnit(3));
     archive.insert(task.arguments_tasks_key,

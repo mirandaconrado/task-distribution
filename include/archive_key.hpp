@@ -22,17 +22,29 @@
 namespace TaskDistribution {
   // General key for the archive used.
   struct ArchiveKey {
+    enum Type {
+      Task,
+      ComputingUnit,
+      Arguments,
+      ArgumentsTasks,
+      Result,
+      ComputingUnitId,
+      Unknown
+    };
+
     size_t node_id;
     size_t obj_id;
+    Type type;
 
     // Constructs invalid keys as default.
-    ArchiveKey(): node_id(0), obj_id(0) { }
+    ArchiveKey(): node_id(0), obj_id(0), type(Unknown) { }
 
-    ArchiveKey(size_t node, size_t obj):
+    ArchiveKey(size_t node, size_t obj, Type _type):
       node_id(node),
-      obj_id(obj) { }
+      obj_id(obj),
+      type(_type){ }
 
-    bool is_valid() const { return obj_id != 0; }
+    bool is_valid() const { return obj_id != 0 && type != Unknown; }
 
     bool operator==(ArchiveKey const& other) const {
       return node_id == other.node_id &&
@@ -51,21 +63,22 @@ namespace TaskDistribution {
     void serialize(Archive& ar, const unsigned int version) {
       ar & node_id;
       ar & obj_id;
+      ar & type;
     }
 
     // Creates a new unique key. The method has an internal counter to guarantee
     // that each key created is unique.
 #if ENABLE_MPI
-    static ArchiveKey new_key(boost::mpi::communicator& world) {
+    static ArchiveKey new_key(boost::mpi::communicator& world, Type type) {
       static size_t next_obj = 1;
-      ArchiveKey ret({0, next_obj++});
+      ArchiveKey ret({0, next_obj++, type});
       ret.node_id = world.rank();
       return ret;
     }
 #else
-    static ArchiveKey new_key() {
+    static ArchiveKey new_key(Type type) {
       static size_t next_obj = 1;
-      ArchiveKey ret({0, next_obj++});
+      ArchiveKey ret({0, next_obj++, type});
       return ret;
     }
 #endif

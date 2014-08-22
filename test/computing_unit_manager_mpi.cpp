@@ -18,10 +18,11 @@ TEST(ComputingUnitManager, ProcessRemote) {
   world.barrier();
 
   TaskDistribution::TaskEntry task;
-  task.task_key = {0, 1};
-  task.computing_unit_key = {0, 2};
-  task.arguments_key = {0, 3};
-  task.computing_unit_id_key = {0, 4};
+  task.task_key = {0, 1, TaskDistribution::ArchiveKey::Task};
+  task.computing_unit_key = {0, 2, TaskDistribution::ArchiveKey::ComputingUnit};
+  task.arguments_key = {0, 3, TaskDistribution::ArchiveKey::Arguments};
+  task.computing_unit_id_key = {0, 4,
+    TaskDistribution::ArchiveKey::ComputingUnitId};
 
   if (world.rank() == 0) {
     archive.insert(task.task_key, task);

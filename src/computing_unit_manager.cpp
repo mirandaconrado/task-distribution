@@ -25,9 +25,9 @@ namespace TaskDistribution {
 
     if (task.should_save) {
 #if ENABLE_MPI
-      task.result_key = ArchiveKey::new_key(world_);
+      task.result_key = ArchiveKey::new_key(world_, ArchiveKey::Result);
 #else
-      task.result_key = ArchiveKey::new_key();
+      task.result_key = ArchiveKey::new_key(ArchiveKey::Result);
 #endif
     }
 
