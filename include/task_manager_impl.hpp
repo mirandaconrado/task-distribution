@@ -3,20 +3,24 @@
 
 #include "task_manager.hpp"
 
-/*#include "computing_unit.hpp"
+#include "computing_unit.hpp"
 #include "dependency_analyzer.hpp"
 #include "task.hpp"
 
-#include <boost/integer/static_min_max.hpp>*/
+#include <functional>
+/*#include <boost/integer/static_min_max.hpp>*/
 
 //#include <algorithm>
 //#include <tuple>
 
 namespace TaskDistribution {
-  /*template <class Unit, class... Args>
+
+  template <class Unit, class... Args>
   Task<typename function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     typedef typename clean_tuple<Args...>::type args_tuple_type;
+    typedef typename repeated_tuple<std::tuple_size<args_tuple_type>::value,
+            ArchiveKey>::type args_tasks_tuple_type;
 
     static_assert(
         std::tuple_size<args_tuple_type>::value == function_traits<Unit>::arity,
@@ -25,71 +29,96 @@ namespace TaskDistribution {
 
     static_assert(
         is_tuple_convertible<
-          std::tuple<Args...>,
+          args_tuple_type,
           typename function_traits<Unit>::arg_tuple_type
         >::value,
-        "Can't convert from arguments provided to expected.");
+        "Can't convert from arguments provided to expected."
+    );
 
-    typedef typename convert_tuple<
-      typename function_traits<Unit>::arg_tuple_type, args_tuple_type>::type
-      converted_args_tuple_type;
+    args_tuple_type args_tuple(make_args_tuple<args_tuple_type>(args...));
+    args_tasks_tuple_type args_tasks_tuple(
+        make_args_tasks_tuple<args_tasks_tuple_type>(args...));
 
-    converted_args_tuple_type args_tuple(args...);
+    printf("%s\n", typeid(args_tuple_type).name());
 
-    std::string unit_str = ObjectArchive<ArchiveKey>::serialize(computing_unit);
-    std::string args_str = ObjectArchive<ArchiveKey>::serialize(args_tuple);
+    // Gets keys
+    ArchiveKey computing_unit_key = get_key(computing_unit,
+        ArchiveKey::ComputingUnit);
+    ArchiveKey computing_unit_id_key = get_key(computing_unit.get_id(),
+        ArchiveKey::ComputingUnitId);
+    ArchiveKey arguments_key = get_key(args_tuple,
+        ArchiveKey::Arguments);
+    ArchiveKey arguments_tasks_key = get_key(args_tasks_tuple,
+        ArchiveKey::ArgumentsTasks);
+
+    // Builds entry
+    TaskEntry task_entry;
+    task_entry.computing_unit_key = computing_unit_key;
+    task_entry.computing_unit_id_key = computing_unit_id_key;
+    task_entry.arguments_key = arguments_key;
+    task_entry.arguments_tasks_key = arguments_tasks_key;
+    task_entry.should_save = computing_unit.should_save();
+    task_entry.run_locally = computing_unit.run_locally();
+
+    // Stores task entry and update its internal data
+    ArchiveKey task_key = get_key(task_entry, ArchiveKey::Task);
+    archive_.load(task_key, task_entry);
+    task_entry.task_key = task_key;
+
+    if (!task_entry.parents_key.is_valid()) {
+      task_entry.parents_key = new_key(ArchiveKey::Parents);
+      archive_.insert(task_entry.parents_key, std::list<ArchiveKey>());
+    }
+
+    if (!task_entry.children_key.is_valid()) {
+      task_entry.children_key = new_key(ArchiveKey::Children);
+      archive_.insert(task_entry.children_key, std::list<ArchiveKey>());
+    }
+
+    archive_.insert(task_key, task_entry);
 
     // Checks if the task already exists
-    std::string unit_key = typeid(Unit).name();
-    std::string args_key = typeid(args_tuple).name();
+    auto it = map_key_to_task_.find(task_key);
+    if (it == map_key_to_task_.end()) {
+      BaseTask* task = new BaseTask(task_key);
+      map_key_to_task_.emplace(task_key, task);
 
-    ArchiveKey task_key = get_task(unit_key, args_key, unit_str, args_str);
-    TaskEntry task_entry;
-    archive_.load(task_key, task_entry, true);
+      // Do dependency analysis
+      DependencyAnalyzer da;
+      da.analyze(args_tasks_tuple);
 
-    BaseTask* task;
+      std::list<ArchiveKey> parents;
+      archive_.load(task_entry.parents_key, parents);
 
-    if (task_entry.task.is_valid())
-      archive_.load(task_entry.task, task, true);
-    else {
-      // New task
-      task_entry.should_save = computing_unit.should_save();
-      task_entry.run_locally = computing_unit.run_locally();
-      task_entry.task = new_object_key();
-      archive_.insert(task_key, task_entry, true);
-      task = new RealTask<Unit, std::tuple<Args...>>(task_key);
-      archive_.insert(task_entry.task, task, true);
+      for (auto& parent_key: da.dependencies) {
+        BaseTask* parent = map_key_to_task_.at(parent_key);
+
+        TaskEntry parent_entry;
+        archive_.load(parent_key, parent_entry);
+
+        std::list<ArchiveKey> children;
+        archive_.load(parent_entry.children_key, children);
+
+        map_task_to_parents_[task_key].push_back(parent_key);
+        map_task_to_children_[parent_key].push_back(task_key);
+
+        parents.push_back(parent_key);
+        children.push_back(task_key);
+
+        archive_.insert(parent_entry.children_key, children);
+        printf("added dependency (%lu,%lu)\n", parent_entry.task_key.obj_id,
+            task_entry.task_key.obj_id);
+
+        if (!parent_entry.result_key.is_valid())
+          task->parents_active_++;
+        if (!task_entry.result_key.is_valid())
+          parent->children_active_++;
+      }
+
+//      check_if_ready(task_key);
     }
-
-    DependencyAnalyzer da;
-    da.analyze(args_tuple);
-
-    for (auto& parent_key: da.dependencies) {
-      TaskEntry parent_entry;
-      archive_.load(parent_key, parent_entry, true);
-
-      BaseTask* parent;
-      archive_.load(parent_entry.task, parent, true);
-
-      parent->children_.push_back(task_key);
-      task->parents_.push_back(parent_key);
-
-      if (!parent_entry.result.is_valid())
-        task->parents_active_++;
-      if (!task_entry.result.is_valid())
-        parent->children_active_++;
-
-      archive_.insert(parent_entry.task, parent, true);
-
-      delete parent;
-    }
-
-    if (!da.dependencies.empty())
-      archive_.insert(task_entry.task, task, true);
-
-    delete task;
-
-    check_if_ready(task_key);
+    else
+      printf("found existing task\n");
 
     return Task<typename function_traits<Unit>::return_type>(task_key, this);
   }
@@ -104,9 +133,9 @@ namespace TaskDistribution {
     return arg;
   }
 
-  template <class To, class From>
+  /*template <class To, class From>
   Task<To> TaskManager::new_conversion_task(From const& arg) {
-    return new_task(ConvertComputingUnit<From,To>(), arg);
+    return new_task(ConvertComputingUnit<From,To>(), std::forward<From>(arg));
  }*/
 
   /*template <class T>
@@ -121,6 +150,32 @@ namespace TaskDistribution {
     size_t size = archive_.load(id, val);
     return size == 0;
   }*/
+
+  template <class T>
+  ArchiveKey TaskManager::get_key(T const& data, ArchiveKey::Type type) {
+    std::string data_str = ObjectArchive<ArchiveKey>::serialize(data);
+    // If collision happens, we are screwed.
+    std::hash<std::string> hasher;
+    size_t hash = hasher(data_str);
+    auto it = map_hash_to_key_.find(hash);
+    if (it == map_hash_to_key_.end()) {
+      ArchiveKey key = new_key(type);
+      map_hash_to_key_.emplace(hash, key);
+      archive_.insert_raw(key, std::move(data_str));
+      return key;
+    }
+
+    return it->second;
+  }
+
+  ArchiveKey TaskManager::new_key(ArchiveKey::Type type) {
+    return
+#if ENABLE_MPI
+      ArchiveKey::new_key(world_, type);
+#else
+      ArchiveKey::new_key(type);
+#endif
+  }
 };
 
 #endif

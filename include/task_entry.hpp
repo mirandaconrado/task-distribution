@@ -23,6 +23,8 @@ namespace TaskDistribution {
     ArchiveKey arguments_tasks_key;
     ArchiveKey result_key;
     ArchiveKey computing_unit_id_key;
+    ArchiveKey parents_key;
+    ArchiveKey children_key;
     bool should_save, run_locally;
 
     TaskEntry(): should_save(true), run_locally(false) { }

@@ -29,6 +29,8 @@ namespace TaskDistribution {
       ArgumentsTasks,
       Result,
       ComputingUnitId,
+      Parents,
+      Children,
       Unknown
     };
 

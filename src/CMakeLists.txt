@@ -7,3 +7,11 @@ target_link_libraries(task_distribution
   ${Boost_LIBRARIES}
   ${MPI_LIB}
 )
+
+add_executable(main
+  main.cpp
+)
+
+target_link_libraries(main
+  task_distribution
+)

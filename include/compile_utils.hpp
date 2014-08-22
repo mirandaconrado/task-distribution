@@ -103,7 +103,7 @@ namespace TaskDistribution {
   template <size_t... S> struct gens<0, S...> { typedef seq<S...> type; };
 
   // Mine
-  /*template <size_t I, class From, class To>
+  template <size_t I, class From, class To>
   struct is_tuple_convertible_ {
     static constexpr bool value =
       std::is_convertible<
@@ -129,7 +129,7 @@ namespace TaskDistribution {
   };
 
   // Mine
-  template <class T> class Task;
+  /*template <class T> class Task;
 
   template <size_t I, class To, class... From>
   struct convert_tuple_ { };

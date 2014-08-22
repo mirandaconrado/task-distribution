@@ -5,7 +5,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "archive_info.hpp"
+#include "archive_key.hpp"
 #include "task.hpp"
 
 namespace TaskDistribution {
@@ -16,7 +16,9 @@ namespace TaskDistribution {
   template <std::size_t I, class Tuple, class Analyzer>
   typename std::enable_if<(I < std::tuple_size<Tuple>::value), void>::type
   tuple_analyze_detail(Tuple const& t, Analyzer& a) {
-    a(std::get<I>(t));
+    ArchiveKey const& key = std::get<I>(t);
+    if (key.is_valid())
+      a.dependencies.push_back(key);
     tuple_analyze_detail<I + 1>(t, a);
   }
 
@@ -26,14 +28,6 @@ namespace TaskDistribution {
     template <class T>
     void analyze(T const& tuple) {
       tuple_analyze_detail<0>(tuple, *this);
-    }
-
-    template <class T>
-    void operator()(T const& v) { }
-
-    template <class T>
-    void operator()(Task<T> const& v) {
-      dependencies.push_front(v.task_key_);
     }
   };
 };
