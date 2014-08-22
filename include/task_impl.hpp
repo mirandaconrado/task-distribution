@@ -3,14 +3,26 @@
 
 #include "task.hpp"
 
-#include "computing_unit.hpp"
+#include <boost/serialization/list.hpp>
+
+#include "task_manager.hpp"
+
+/*#include "computing_unit.hpp"
 #include "task_manager.hpp"
 #include "tuple_convert.hpp"
 
-#include <boost/functional/hash.hpp>
+#include <boost/functional/hash.hpp>*/
 
 namespace TaskDistribution {
-  template <class Unit, class Args>
+  /*template<class Archive>
+  void BaseTask::serialize(Archive& ar, const unsigned int version) {
+    ar & parents_active_;
+    ar & parents_;
+    ar & children_active_;
+    ar & children_;
+    ar & task_key_;
+  }*/
+/*  template <class Unit, class Args>
   boost::any RealTask<Unit,Args>::call() {
     if (on_memory_ && result_ != nullptr)
       return result_;
@@ -121,6 +133,12 @@ namespace TaskDistribution {
       delete result_;
       result_ = nullptr;
     }
+  }*/
+
+  template <class T>
+  Task<T>::operator T() const {
+    BOOST_ASSERT_MSG(task_key_.is_valid(), "invalid task key");
+    return *boost::any_cast<T*>(task_manager_->get_result(task_key_));
   }
 };
 

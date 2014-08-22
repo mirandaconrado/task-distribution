@@ -3,17 +3,17 @@
 
 #include "task_manager.hpp"
 
-#include "computing_unit.hpp"
+/*#include "computing_unit.hpp"
 #include "dependency_analyzer.hpp"
 #include "task.hpp"
 
-#include <boost/integer/static_min_max.hpp>
+#include <boost/integer/static_min_max.hpp>*/
 
 //#include <algorithm>
 //#include <tuple>
 
 namespace TaskDistribution {
-  template <class Unit, class... Args>
+  /*template <class Unit, class... Args>
   Task<typename function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     typedef typename clean_tuple<Args...>::type args_tuple_type;
@@ -107,7 +107,7 @@ namespace TaskDistribution {
   template <class To, class From>
   Task<To> TaskManager::new_conversion_task(From const& arg) {
     return new_task(ConvertComputingUnit<From,To>(), arg);
-  }
+ }*/
 
   /*template <class T>
   void TaskManager::save(BaseTask* t, T const& val) {

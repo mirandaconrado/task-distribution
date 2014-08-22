@@ -1,12 +1,12 @@
 #include "task_manager.hpp"
 
 namespace TaskDistribution {
-  TaskManager::TaskManager():
+  /*TaskManager::TaskManager():
     next_free_obj_id_(1) { }
 
   TaskManager::~TaskManager() {
-    /*for (auto& it : hash_map_)
-      delete it.second;*/
+    for (auto& it : hash_map_)
+      delete it.second;
   }
 
   void TaskManager::check_if_ready(ArchiveKey const& task_key) {
@@ -23,7 +23,7 @@ namespace TaskDistribution {
         tasks_ready_to_run_.insert(task_key);
 
     delete task;
-  }
+  }*/
 
   /*void TaskManager::run() {
 #if !(NO_MPI)
@@ -171,13 +171,13 @@ namespace TaskDistribution {
     return archive_.is_available(t->get_id());
   }*/
 
-  size_t TaskManager::id() const {
+  /*size_t TaskManager::id() const {
 #if ENABLE_MPI
     return world_.rank();
 #else
     return 0;
 #endif
-  }
+  }*/
 
   /*void TaskManager::print_status() {
     time_t current = time(NULL);
@@ -256,7 +256,7 @@ namespace TaskDistribution {
     archive_.clear();
   }*/
 
-  ArchiveKey TaskManager::new_object_key() {
+  /*ArchiveKey TaskManager::new_object_key() {
     ArchiveKey key;
     key.node_id = id();
     key.obj_id = next_free_obj_id_++;
@@ -341,5 +341,5 @@ namespace TaskDistribution {
     }
 
     return key;
-  }
+  }*/
 };

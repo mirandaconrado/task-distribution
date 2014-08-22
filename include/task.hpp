@@ -2,13 +2,11 @@
 #define __TASK_DISTRIBUTION__TASK_HPP__
 
 #include <boost/any.hpp>
-#if !(NO_MPI)
+/*#if !(NO_MPI)
 #include <boost/mpi/communicator.hpp>
-#endif
-#include <boost/serialization/list.hpp>
-#include <unordered_set>
+#endif*/
 
-#include "archive_info.hpp"
+#include "archive_key.hpp"
 
 namespace TaskDistribution {
   class TaskManager;
@@ -19,14 +17,8 @@ namespace TaskDistribution {
         parents_active_(0),
         children_active_(0) { }
 
-      template<class Archive>
-      void serialize(Archive& ar, const unsigned int version) {
-        ar & parents_active_;
-        ar & parents_;
-        ar & children_active_;
-        ar & children_;
-        ar & task_key_;
-      }
+      /*template<class Archive>
+      void serialize(Archive& ar, const unsigned int version);*/
 
       /*BaseTask(size_t id, TaskManager* task_manager);
 
@@ -83,10 +75,10 @@ namespace TaskDistribution {
 
       virtual ~RealTask();*/
 
-      template<class Archive>
+      /*template<class Archive>
       void serialize(Archive& ar, const unsigned int version) {
         ar & boost::serialization::base_object<BaseTask>(*this);
-      }
+      }*/
 
     private:
       // Not implemented
@@ -125,7 +117,7 @@ namespace TaskDistribution {
         return Unit::name;
       }*/
 
-      friend class TaskManager;
+      //friend class TaskManager;
 
       /*Unit const computing_unit_;
 
@@ -137,11 +129,21 @@ namespace TaskDistribution {
   template <class T>
   class Task {
     public:
-      Task() { }
+      Task(): task_manager_(nullptr) { }
+
+      Task(Task<T> const& other) {
+        task_key_ = other.task_key_;
+        task_manager_ = other.task_manager_;
+      }
 
       template <class Other>
       Task(Task<Other> const& other) {
         *this = other.task_manager_->template new_conversion_task<T>(other);
+      }
+
+      Task<T> const& operator=(Task<T> const& other) {
+        task_key_ = other.task_key_;
+        task_manager_ = other.task_manager_;
       }
 
       template <class Other>
@@ -155,47 +157,29 @@ namespace TaskDistribution {
         ar & task_key_;
       }
 
-      template <class Other>
-      bool is_same_task(Task<Other> const& other) const {
-        return false;
-      }
-
+      // Can't use operator== as it may force type conversion
       bool is_same_task(Task<T> const& other) const {
         return task_key_ == other.task_key_ &&
                task_manager_ == other.task_manager_;
       }
 
-      operator T() const {
-        printf("conversion\n");
-        BOOST_ASSERT_MSG(task_key_.is_valid(), "invalid task key");
-        //return *boost::any_cast<T*>(task->call());
-        return T();
+      template <class Other>
+      bool is_same_task(Task<Other> const& other) const {
+        return false;
       }
+
+      operator T() const;
 
       T operator()() const {
         return (T)*this;
       }
 
-      /*void unload() {
-        task->unload();
-      }
-
-      size_t get_id() {
-        return task->get_id();
-      }
-
-      friend size_t hash_value(Task const& t) {
-        BOOST_ASSERT_MSG(t.task != nullptr,
-                         "task not created by a TaskManager");
-        return t.task->get_id();
-      }*/
-
     private:
-      template <class> friend class Task;
+      /*template <class> friend class Task;
 
       friend class TaskManager;
 
-      friend struct DependencyAnalyzer;
+      friend struct DependencyAnalyzer;*/
 
       Task(ArchiveKey task_key, TaskManager* task_manager):
         task_key_(task_key),
@@ -207,6 +191,6 @@ namespace TaskDistribution {
   };
 };
 
-//#include "task_impl.hpp"
+#include "task_impl.hpp"
 
 #endif

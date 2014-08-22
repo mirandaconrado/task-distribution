@@ -5,14 +5,14 @@
 #include <boost/mpi/communicator.hpp>
 #endif
 //#include <fstream>
-#include <unordered_map>
-#include <unordered_set>
+//#include <unordered_map>
+//#include <unordered_set>
 
-#include <boost/predef.h>
+//#include <boost/predef.h>
 
-#include "archive_info.hpp"
-#include "compile_utils.hpp"
-#include "object_archive.hpp"
+#include "archive_key.hpp"
+//#include "compile_utils.hpp"
+#include "mpi_object_archive.hpp"
 
 namespace TaskDistribution {
   class BaseTask;
@@ -59,7 +59,7 @@ namespace TaskDistribution {
 
       //-- End Archive mappings --
 
-      template <class Unit, class... Args>
+      /*template <class Unit, class... Args>
       Task<typename function_traits<Unit>::return_type>
       new_task(Unit const& computing_unit, Args const&... args);
 
@@ -70,7 +70,7 @@ namespace TaskDistribution {
       Task<T> new_identity_task(Task<T> const& arg);
 
       template <class To, class From>
-      Task<To> new_conversion_task(From const& arg);
+      Task<To> new_conversion_task(From const& arg);*/
 
       /*void add_free_task(BaseTask* task);
 
@@ -86,7 +86,7 @@ namespace TaskDistribution {
 
       bool check(BaseTask* task) const;*/
 
-      size_t id() const;
+      //size_t id() const;
 
       /*void print_status();
 
@@ -109,7 +109,7 @@ namespace TaskDistribution {
 
       void task_completed(BaseTask *task);*/
 
-      void check_if_ready(ArchiveKey const& task_key);
+      /*void check_if_ready(ArchiveKey const& task_key);
 
       ArchiveKey new_object_key();
 
@@ -126,15 +126,15 @@ namespace TaskDistribution {
       boost::mpi::communicator world_;
 #endif
 
-      size_t next_free_obj_id_;
+      size_t next_free_obj_id_;*/
 
-      ObjectArchive<ArchiveKey> archive_;
+      MPIObjectArchive<ArchiveKey> archive_;
 
-      std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
+      /*std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
       std::unordered_multimap<std::string, ArchiveKey> map_unit_names_to_units_;
       std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
 
-      std::unordered_set<ArchiveKey> tasks_ready_to_run_;
+      std::unordered_set<ArchiveKey> tasks_ready_to_run_;*/
 
       /*std::unordered_map<size_t,BaseTask*> hash_map_;
 
@@ -148,6 +148,6 @@ namespace TaskDistribution {
   };
 };
 
-#include "task_manager_impl.hpp"
+//#include "task_manager_impl.hpp"
 
 #endif
