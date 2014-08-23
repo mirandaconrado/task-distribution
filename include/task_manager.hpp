@@ -121,6 +121,12 @@ namespace TaskDistribution {
       // Creates a new key of a given type
       ArchiveKey new_key(ArchiveKey::Type type);
 
+      // Creates children and parents if they are invalid
+      void create_family_lists(TaskEntry& entry);
+
+      void add_dependency(BaseTask* child, TaskEntry const& child_entry,
+          ArchiveKey const& parent_key, std::set<ArchiveKey>& parents);
+
       /*void check_if_ready(ArchiveKey const& task_key);
 
       ArchiveKey new_object_key();
@@ -149,6 +155,7 @@ namespace TaskDistribution {
       std::unordered_map<size_t, ArchiveKey> map_hash_to_key_;
       std::unordered_map<ArchiveKey, std::set<ArchiveKey>>
         map_task_to_parents_, map_task_to_children_;
+      std::list<ArchiveKey> ready_;
       //std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
       //std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
 

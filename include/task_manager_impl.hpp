@@ -69,15 +69,7 @@ namespace TaskDistribution {
     task_entry.task_key = task_key;
 
     // Creates children and parents if they don't exist
-    if (!task_entry.parents_key.is_valid()) {
-      task_entry.parents_key = new_key(ArchiveKey::Parents);
-      archive_.insert(task_entry.parents_key, std::set<ArchiveKey>());
-    }
-
-    if (!task_entry.children_key.is_valid()) {
-      task_entry.children_key = new_key(ArchiveKey::Children);
-      archive_.insert(task_entry.children_key, std::set<ArchiveKey>());
-    }
+    create_family_lists(task_entry);
 
     archive_.insert(task_key, task_entry);
 
@@ -96,34 +88,12 @@ namespace TaskDistribution {
       std::set<ArchiveKey> parents;
       archive_.load(task_entry.parents_key, parents);
 
-      // For each parent found...
-      for (auto& parent_key: da.dependencies) {
-        BaseTask* parent = map_key_to_task_.at(parent_key);
+      // Add dependencies
+      for (auto& parent_key: da.dependencies)
+        add_dependency(task, task_entry, parent_key, parents);
 
-        TaskEntry parent_entry;
-        archive_.load(parent_key, parent_entry);
-
-        std::set<ArchiveKey> children;
-        archive_.load(parent_entry.children_key, children);
-
-        // Creates bidirectional maps
-        map_task_to_parents_[task_key].insert(parent_key);
-        map_task_to_children_[parent_key].insert(task_key);
-
-        parents.insert(parent_key);
-        children.insert(task_key);
-
-        archive_.insert(parent_entry.children_key, children);
-        printf("added dependency (%lu,%lu)\n", parent_entry.task_key.obj_id,
-            task_entry.task_key.obj_id);
-
-        if (!parent_entry.result_key.is_valid())
-          task->parents_active_++;
-        if (!task_entry.result_key.is_valid())
-          parent->children_active_++;
-      }
-
-//      check_if_ready(task_key);
+      if (task->parents_active_ == 0)
+        ready_.push_back(task_key);
     }
     else
       printf("found existing task\n");
@@ -183,6 +153,44 @@ namespace TaskDistribution {
 #else
       ArchiveKey::new_key(type);
 #endif
+  }
+
+  void TaskManager::create_family_lists(TaskEntry& entry) {
+    if (!entry.parents_key.is_valid()) {
+      entry.parents_key = new_key(ArchiveKey::Parents);
+      archive_.insert(entry.parents_key, std::set<ArchiveKey>());
+    }
+
+    if (!entry.children_key.is_valid()) {
+      entry.children_key = new_key(ArchiveKey::Children);
+      archive_.insert(entry.children_key, std::set<ArchiveKey>());
+    }
+  }
+
+  void TaskManager::add_dependency(BaseTask* child,
+      TaskEntry const& child_entry, ArchiveKey const& parent_key,
+      std::set<ArchiveKey>& parents) {
+    BaseTask* parent = map_key_to_task_.at(parent_key);
+
+    TaskEntry parent_entry;
+    archive_.load(parent_key, parent_entry);
+
+    std::set<ArchiveKey> children;
+    archive_.load(parent_entry.children_key, children);
+
+    // Creates bidirectional maps
+    map_task_to_parents_[child_entry.task_key].insert(parent_key);
+    map_task_to_children_[parent_key].insert(child_entry.task_key);
+
+    parents.insert(parent_key);
+    children.insert(child_entry.task_key);
+
+    archive_.insert(parent_entry.children_key, children);
+
+    if (!parent_entry.result_key.is_valid() && parent_entry.should_save)
+      child->parents_active_++;
+    if (!child_entry.result_key.is_valid() && child_entry.should_save)
+      parent->children_active_++;
   }
 };
 
