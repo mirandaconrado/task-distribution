@@ -145,52 +145,6 @@ namespace TaskDistribution {
 
     return it->second;
   }
-
-  Key TaskManager::new_key(Key::Type type) {
-    return
-#if ENABLE_MPI
-      Key::new_key(world_, type);
-#else
-      Key::new_key(type);
-#endif
-  }
-
-  void TaskManager::create_family_lists(TaskEntry& entry) {
-    if (!entry.parents_key.is_valid()) {
-      entry.parents_key = new_key(Key::Parents);
-      archive_.insert(entry.parents_key, KeySet());
-    }
-
-    if (!entry.children_key.is_valid()) {
-      entry.children_key = new_key(Key::Children);
-      archive_.insert(entry.children_key, KeySet());
-    }
-  }
-
-  void TaskManager::add_dependency(BaseTask* child,
-      TaskEntry const& child_entry, Key const& parent_key, KeySet& parents) {
-    BaseTask* parent = map_key_to_task_.at(parent_key);
-
-    TaskEntry parent_entry;
-    archive_.load(parent_key, parent_entry);
-
-    KeySet children;
-    archive_.load(parent_entry.children_key, children);
-
-    // Creates bidirectional maps
-    map_task_to_parents_[child_entry.task_key].insert(parent_key);
-    map_task_to_children_[parent_key].insert(child_entry.task_key);
-
-    parents.insert(parent_key);
-    children.insert(child_entry.task_key);
-
-    archive_.insert(parent_entry.children_key, children);
-
-    if (!parent_entry.result_key.is_valid() && parent_entry.should_save)
-      child->parents_active_++;
-    if (!child_entry.result_key.is_valid() && child_entry.should_save)
-      parent->children_active_++;
-  }
 };
 
 #endif
