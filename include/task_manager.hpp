@@ -124,6 +124,7 @@ namespace TaskDistribution {
       // Creates children and parents if they are invalid
       void create_family_lists(TaskEntry& entry);
 
+      // Creates the bilateral link between child and parent task
       void add_dependency(BaseTask* child, TaskEntry const& child_entry,
           Key const& parent_key, KeySet& parents);
 
