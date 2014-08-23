@@ -24,15 +24,15 @@ namespace TaskDistribution {
   template <std::size_t I, class T1, class T2>
   typename std::enable_if<(I == std::tuple_size<T1>::value ||
                            I == std::tuple_size<T2>::value), void>::type
-  load_tasks_arguments_detail(T1&, T2 const&, ObjectArchive<ArchiveKey>&,
+  load_tasks_arguments_detail(T1&, T2 const&, ObjectArchive<Key>&,
       ComputingUnitManager&) { }
 
   template <std::size_t I, class T1, class T2>
   typename std::enable_if<(I < std::tuple_size<T1>::value &&
                            I < std::tuple_size<T2>::value), void>::type
   load_tasks_arguments_detail(T1& t1, T2 const& t2,
-      ObjectArchive<ArchiveKey>& archive, ComputingUnitManager& manager) {
-    ArchiveKey const& task_key = std::get<I>(t2);
+      ObjectArchive<Key>& archive, ComputingUnitManager& manager) {
+    Key const& task_key = std::get<I>(t2);
     if (task_key.is_valid()) {
       TaskEntry entry;
       archive.load(task_key, entry);
@@ -61,12 +61,12 @@ namespace TaskDistribution {
   typename std::enable_if<std::tuple_size<T1>::value ==
                           std::tuple_size<T2>::value, void>::type
   load_tasks_arguments(T1& t1, T2 const& t2,
-      ObjectArchive<ArchiveKey>& archive, ComputingUnitManager& manager) {
+      ObjectArchive<Key>& archive, ComputingUnitManager& manager) {
     load_tasks_arguments_detail<0>(t1,t2,archive, manager);
   }
 
   template <class T>
-  void ComputingUnit<T>::execute(ObjectArchive<ArchiveKey>& archive,
+  void ComputingUnit<T>::execute(ObjectArchive<Key>& archive,
       TaskEntry const& task, ComputingUnitManager& manager) const {
     // Loads computing unit
     T obj;
@@ -81,7 +81,7 @@ namespace TaskDistribution {
     // Loads tasks arguments
     if (task.arguments_tasks_key.is_valid()) {
       typename repeated_tuple<std::tuple_size<decltype(args)>::value,
-               ArchiveKey>::type tasks_tuple;
+               Key>::type tasks_tuple;
       archive.load(task.arguments_tasks_key, tasks_tuple);
 
       load_tasks_arguments(args, tasks_tuple, archive, manager);

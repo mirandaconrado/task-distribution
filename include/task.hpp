@@ -6,7 +6,7 @@
 #include <boost/mpi/communicator.hpp>
 #endif*/
 
-#include "archive_key.hpp"
+#include "key.hpp"
 
 namespace TaskDistribution {
   class TaskManager;
@@ -46,7 +46,7 @@ namespace TaskDistribution {
       virtual void unload()=0;*/
 
     protected:
-      BaseTask(ArchiveKey task_key):
+      BaseTask(Key task_key):
         BaseTask() {
           task_key_ = task_key;
       }
@@ -61,7 +61,7 @@ namespace TaskDistribution {
 
       size_t parents_active_;
       size_t children_active_;
-      ArchiveKey task_key_;
+      Key task_key_;
   };
 
   template <class T>
@@ -120,11 +120,11 @@ namespace TaskDistribution {
 
       //friend struct DependencyAnalyzer;
 
-      Task(ArchiveKey task_key, TaskManager* task_manager):
+      Task(Key task_key, TaskManager* task_manager):
         task_key_(task_key),
         task_manager_(task_manager) { }
 
-      ArchiveKey task_key_;
+      Key task_key_;
 
       TaskManager* task_manager_;
   };

@@ -43,9 +43,9 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "archive_key.hpp"
 #include "compile_utils.hpp"
 #include "computing_unit_manager.hpp"
+#include "key.hpp"
 #include "task_entry.hpp"
 
 namespace TaskDistribution {
@@ -69,11 +69,11 @@ namespace TaskDistribution {
 
       // Static method to fetch the correct kind of unit for a key. Returns NULL
       // if not found.
-      static BaseComputingUnit const* get_by_key(ArchiveKey const& key);
+      static BaseComputingUnit const* get_by_key(Key const& key);
 
       // Binds a given id with a key. Multiple keys may be bound to the same id.
       // Returns true if the id was found.
-      static bool bind_key(std::string const& id, ArchiveKey const& key);
+      static bool bind_key(std::string const& id, Key const& key);
 
       // Gets the id associated with this kind of unit.
       std::string const& get_id() const {
@@ -91,8 +91,8 @@ namespace TaskDistribution {
       void serialize(Archive& ar, const unsigned int version) { }
 
       // Loads the computing unit and arguments and stores the result in the
-      // archive. Assumes every ArchiveKey provided is valid.
-      virtual void execute(ObjectArchive<ArchiveKey>& archive,
+      // archive. Assumes every Key provided is valid.
+      virtual void execute(ObjectArchive<Key>& archive,
           TaskEntry const& task, ComputingUnitManager& manager) const = 0;
 
     protected:
@@ -111,7 +111,7 @@ namespace TaskDistribution {
       // Map between ids and units.
       static std::unordered_map<std::string,BaseComputingUnit const*> id_map_;
       // Map between keys and units.
-      static std::unordered_map<ArchiveKey,BaseComputingUnit const*> key_map_;
+      static std::unordered_map<Key,BaseComputingUnit const*> key_map_;
   };
 
   // Class that should be inherited by the user's units. For an example on how
@@ -124,7 +124,7 @@ namespace TaskDistribution {
       // Registers the unit by placing a new copy into the units' map.
       explicit ComputingUnit(std::string const& name);
 
-      virtual void execute(ObjectArchive<ArchiveKey>& archive,
+      virtual void execute(ObjectArchive<Key>& archive,
           TaskEntry const& task, ComputingUnitManager& manager) const;
 
     private:

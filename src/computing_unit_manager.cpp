@@ -5,17 +5,17 @@
 namespace TaskDistribution {
 #if ENABLE_MPI
   ComputingUnitManager::ComputingUnitManager(boost::mpi::communicator& world,
-      MPIObjectArchive<ArchiveKey>& archive):
+      MPIObjectArchive<Key>& archive):
     ComputingUnitManager(Tags(), world, archive) { }
 
   ComputingUnitManager::ComputingUnitManager(Tags const& tags,
-      boost::mpi::communicator& world, MPIObjectArchive<ArchiveKey>& archive):
+      boost::mpi::communicator& world, MPIObjectArchive<Key>& archive):
     world_(world),
     tags_(tags),
     archive_(archive) { }
 #else
   ComputingUnitManager::ComputingUnitManager(
-      ObjectArchive<ArchiveKey>& archive):
+      ObjectArchive<Key>& archive):
     archive_(archive) { }
 #endif
 
@@ -25,9 +25,9 @@ namespace TaskDistribution {
 
     if (task.should_save) {
 #if ENABLE_MPI
-      task.result_key = ArchiveKey::new_key(world_, ArchiveKey::Result);
+      task.result_key = Key::new_key(world_, Key::Result);
 #else
-      task.result_key = ArchiveKey::new_key(ArchiveKey::Result);
+      task.result_key = Key::new_key(Key::Result);
 #endif
     }
 
@@ -71,7 +71,7 @@ namespace TaskDistribution {
           world_.isend(status.source(), tags_.task_end, task.task_key);
         }
         else if (status.tag() == tags_.task_end) {
-          ArchiveKey task_key;
+          Key task_key;
           world_.recv(status.source(), status.tag(), task_key);
 
           tasks_ended_.push_back(task_key);
@@ -88,7 +88,7 @@ namespace TaskDistribution {
     world_.isend(remote, tags_.task_begin, task);
   }
 
-  std::list<ArchiveKey> const& ComputingUnitManager::get_tasks_ended() const {
+  KeyList const& ComputingUnitManager::get_tasks_ended() const {
     return tasks_ended_;
   }
 

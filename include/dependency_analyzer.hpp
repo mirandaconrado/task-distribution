@@ -1,11 +1,10 @@
 #ifndef __TASK_DISTRIBUTION__DEPENDENCY_ANALYZER__HPP__
 #define __TASK_DISTRIBUTION__DEPENDENCY_ANALYZER__HPP__
 
-#include <list>
 #include <tuple>
 #include <type_traits>
 
-#include "archive_key.hpp"
+#include "key.hpp"
 #include "task.hpp"
 
 namespace TaskDistribution {
@@ -16,14 +15,14 @@ namespace TaskDistribution {
   template <std::size_t I, class Tuple, class Analyzer>
   typename std::enable_if<(I < std::tuple_size<Tuple>::value), void>::type
   tuple_analyze_detail(Tuple const& t, Analyzer& a) {
-    ArchiveKey const& key = std::get<I>(t);
+    Key const& key = std::get<I>(t);
     if (key.is_valid())
       a.dependencies.push_back(key);
     tuple_analyze_detail<I + 1>(t, a);
   }
 
   struct DependencyAnalyzer {
-    std::list<ArchiveKey> dependencies;
+    KeyList dependencies;
 
     template <class T>
     void analyze(T const& tuple) {

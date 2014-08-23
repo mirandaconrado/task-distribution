@@ -21,7 +21,7 @@ namespace TaskDistribution {
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     typedef typename clean_tuple<Args...>::type args_tuple_type;
     typedef typename repeated_tuple<std::tuple_size<args_tuple_type>::value,
-            ArchiveKey>::type args_tasks_tuple_type;
+            Key>::type args_tasks_tuple_type;
 
     // Checks if the arguments are valid
     static_assert(
@@ -45,14 +45,14 @@ namespace TaskDistribution {
     printf("%s\n", typeid(args_tuple_type).name());
 
     // Gets keys
-    ArchiveKey computing_unit_key = get_key(computing_unit,
-        ArchiveKey::ComputingUnit);
-    ArchiveKey computing_unit_id_key = get_key(computing_unit.get_id(),
-        ArchiveKey::ComputingUnitId);
-    ArchiveKey arguments_key = get_key(args_tuple,
-        ArchiveKey::Arguments);
-    ArchiveKey arguments_tasks_key = get_key(args_tasks_tuple,
-        ArchiveKey::ArgumentsTasks);
+    Key computing_unit_key = get_key(computing_unit,
+        Key::ComputingUnit);
+    Key computing_unit_id_key = get_key(computing_unit.get_id(),
+        Key::ComputingUnitId);
+    Key arguments_key = get_key(args_tuple,
+        Key::Arguments);
+    Key arguments_tasks_key = get_key(args_tasks_tuple,
+        Key::ArgumentsTasks);
 
     // Builds entry
     TaskEntry task_entry;
@@ -64,7 +64,7 @@ namespace TaskDistribution {
     task_entry.run_locally = computing_unit.run_locally();
 
     // Stores task entry and update its internal data
-    ArchiveKey task_key = get_key(task_entry, ArchiveKey::Task);
+    Key task_key = get_key(task_entry, Key::Task);
     archive_.load(task_key, task_entry);
     task_entry.task_key = task_key;
 
@@ -85,7 +85,7 @@ namespace TaskDistribution {
       da.analyze(args_tasks_tuple);
 
       // Loads parents
-      std::set<ArchiveKey> parents;
+      KeySet parents;
       archive_.load(task_entry.parents_key, parents);
 
       // Add dependencies
@@ -130,14 +130,14 @@ namespace TaskDistribution {
   }*/
 
   template <class T>
-  ArchiveKey TaskManager::get_key(T const& data, ArchiveKey::Type type) {
-    std::string data_str = ObjectArchive<ArchiveKey>::serialize(data);
+  Key TaskManager::get_key(T const& data, Key::Type type) {
+    std::string data_str = ObjectArchive<Key>::serialize(data);
     // If collision happens, we are screwed.
     std::hash<std::string> hasher;
     size_t hash = hasher(data_str);
     auto it = map_hash_to_key_.find(hash);
     if (it == map_hash_to_key_.end()) {
-      ArchiveKey key = new_key(type);
+      Key key = new_key(type);
       map_hash_to_key_.emplace(hash, key);
       archive_.insert_raw(key, std::move(data_str));
       return key;
@@ -146,36 +146,35 @@ namespace TaskDistribution {
     return it->second;
   }
 
-  ArchiveKey TaskManager::new_key(ArchiveKey::Type type) {
+  Key TaskManager::new_key(Key::Type type) {
     return
 #if ENABLE_MPI
-      ArchiveKey::new_key(world_, type);
+      Key::new_key(world_, type);
 #else
-      ArchiveKey::new_key(type);
+      Key::new_key(type);
 #endif
   }
 
   void TaskManager::create_family_lists(TaskEntry& entry) {
     if (!entry.parents_key.is_valid()) {
-      entry.parents_key = new_key(ArchiveKey::Parents);
-      archive_.insert(entry.parents_key, std::set<ArchiveKey>());
+      entry.parents_key = new_key(Key::Parents);
+      archive_.insert(entry.parents_key, KeySet());
     }
 
     if (!entry.children_key.is_valid()) {
-      entry.children_key = new_key(ArchiveKey::Children);
-      archive_.insert(entry.children_key, std::set<ArchiveKey>());
+      entry.children_key = new_key(Key::Children);
+      archive_.insert(entry.children_key, KeySet());
     }
   }
 
   void TaskManager::add_dependency(BaseTask* child,
-      TaskEntry const& child_entry, ArchiveKey const& parent_key,
-      std::set<ArchiveKey>& parents) {
+      TaskEntry const& child_entry, Key const& parent_key, KeySet& parents) {
     BaseTask* parent = map_key_to_task_.at(parent_key);
 
     TaskEntry parent_entry;
     archive_.load(parent_key, parent_entry);
 
-    std::set<ArchiveKey> children;
+    KeySet children;
     archive_.load(parent_entry.children_key, children);
 
     // Creates bidirectional maps

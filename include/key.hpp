@@ -10,18 +10,20 @@
 // By default, a key is considered invalid if the object associated with it has
 // id == 0.
 
-#ifndef __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
-#define __TASK_DISTRIBUTION__ARCHIVE_KEY_HPP__
+#ifndef __TASK_DISTRIBUTION__KEY_HPP__
+#define __TASK_DISTRIBUTION__KEY_HPP__
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #endif
 #include <boost/functional/hash.hpp>
 #include <functional>
+#include <list>
+#include <set>
 
 namespace TaskDistribution {
   // General key for the archive used.
-  struct ArchiveKey {
+  struct Key {
     enum Type {
       Task,
       ComputingUnit,
@@ -39,21 +41,21 @@ namespace TaskDistribution {
     Type type;
 
     // Constructs invalid keys as default.
-    ArchiveKey(): node_id(0), obj_id(0), type(Unknown) { }
+    Key(): node_id(0), obj_id(0), type(Unknown) { }
 
-    ArchiveKey(size_t node, size_t obj, Type _type):
+    Key(size_t node, size_t obj, Type _type):
       node_id(node),
       obj_id(obj),
       type(_type){ }
 
     bool is_valid() const { return obj_id != 0 && type != Unknown; }
 
-    bool operator==(ArchiveKey const& other) const {
+    bool operator==(Key const& other) const {
       return node_id == other.node_id &&
              obj_id == other.obj_id;
     }
 
-    bool operator<(ArchiveKey const& other) const {
+    bool operator<(Key const& other) const {
       if (node_id < other.node_id)
         return true;
       if (node_id > other.node_id)
@@ -71,35 +73,38 @@ namespace TaskDistribution {
     // Creates a new unique key. The method has an internal counter to guarantee
     // that each key created is unique.
 #if ENABLE_MPI
-    static ArchiveKey new_key(boost::mpi::communicator& world, Type type) {
+    static Key new_key(boost::mpi::communicator& world, Type type) {
       static size_t next_obj = 1;
-      ArchiveKey ret({0, next_obj++, type});
+      Key ret({0, next_obj++, type});
       ret.node_id = world.rank();
       return ret;
     }
 #else
-    static ArchiveKey new_key(Type type) {
+    static Key new_key(Type type) {
       static size_t next_obj = 1;
-      ArchiveKey ret({0, next_obj++, type});
+      Key ret({0, next_obj++, type});
       return ret;
     }
 #endif
   };
+
+  typedef std::list<Key> KeyList;
+  typedef std::set<Key> KeySet;
 };
 
 // Enables faster MPI transmission.
 #if ENABLE_MPI
-BOOST_IS_MPI_DATATYPE(TaskDistribution::ArchiveKey);
+BOOST_IS_MPI_DATATYPE(TaskDistribution::Key);
 #endif
 
-// Allows ArchiveKey to be used as key in std::unordered_*.
+// Allows Key to be used as key in std::unordered_*.
 namespace std {
   template<>
-  struct hash<TaskDistribution::ArchiveKey> {
-    typedef TaskDistribution::ArchiveKey argument_type;
+  struct hash<TaskDistribution::Key> {
+    typedef TaskDistribution::Key argument_type;
     typedef size_t value_type;
 
-    value_type operator()(TaskDistribution::ArchiveKey const& key) const {
+    value_type operator()(TaskDistribution::Key const& key) const {
       size_t seed = 0;
       std::hash<size_t> hasher;
       boost::hash_combine(seed, hasher(key.node_id));

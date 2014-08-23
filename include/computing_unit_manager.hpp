@@ -25,12 +25,11 @@
 
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
-#include <list>
 #include "mpi_object_archive.hpp"
 #endif
 
-#include "archive_key.hpp"
 #include "object_archive.hpp"
+#include "key.hpp"
 #include "task_entry.hpp"
 
 namespace TaskDistribution {
@@ -47,11 +46,11 @@ namespace TaskDistribution {
 
       // Constructs with default tags.
       ComputingUnitManager(boost::mpi::communicator& world,
-          MPIObjectArchive<ArchiveKey>& archive);
+          MPIObjectArchive<Key>& archive);
       ComputingUnitManager(Tags const& tags, boost::mpi::communicator& world,
-          MPIObjectArchive<ArchiveKey>& archive);
+          MPIObjectArchive<Key>& archive);
 #else
-      ComputingUnitManager(ObjectArchive<ArchiveKey>& archive);
+      ComputingUnitManager(ObjectArchive<Key>& archive);
 #endif
 
       // Processes the task locally, so that loading task.result gives the
@@ -66,7 +65,7 @@ namespace TaskDistribution {
       void send_remote(TaskEntry const& task, int remote);
 
       // Interface for the list of tasks that have finished.
-      std::list<ArchiveKey> const& get_tasks_ended() const;
+      KeyList const& get_tasks_ended() const;
       void clear_tasks_ended();
 #endif
 
@@ -74,10 +73,10 @@ namespace TaskDistribution {
 #if ENABLE_MPI
       boost::mpi::communicator& world_;
       Tags tags_;
-      MPIObjectArchive<ArchiveKey>& archive_;
-      std::list<ArchiveKey> tasks_ended_;
+      MPIObjectArchive<Key>& archive_;
+      KeyList tasks_ended_;
 #else
-      ObjectArchive<ArchiveKey>& archive_;
+      ObjectArchive<Key>& archive_;
 #endif
   };
 };

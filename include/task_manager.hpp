@@ -13,8 +13,8 @@
 
 //#include <boost/predef.h>
 
-#include "archive_key.hpp"
 #include "compile_utils.hpp"
+#include "key.hpp"
 
 namespace TaskDistribution {
   class BaseTask;
@@ -116,16 +116,16 @@ namespace TaskDistribution {
       // it. Otherwise, creates a new key and inserts it into the archive. This
       // is useful to avoid having lots of similar data with differente keys.
       template <class T>
-      ArchiveKey get_key(T const& data, ArchiveKey::Type type);
+      Key get_key(T const& data, Key::Type type);
 
       // Creates a new key of a given type
-      ArchiveKey new_key(ArchiveKey::Type type);
+      Key new_key(Key::Type type);
 
       // Creates children and parents if they are invalid
       void create_family_lists(TaskEntry& entry);
 
       void add_dependency(BaseTask* child, TaskEntry const& child_entry,
-          ArchiveKey const& parent_key, std::set<ArchiveKey>& parents);
+          Key const& parent_key, KeySet& parents);
 
       /*void check_if_ready(ArchiveKey const& task_key);
 
@@ -142,20 +142,20 @@ namespace TaskDistribution {
 
 #if ENABLE_MPI
       boost::mpi::communicator world_;
-      MPIObjectArchive<ArchiveKey> archive_;
+      MPIObjectArchive<Key> archive_;
 #else
-      ObjectArchive<ArchiveKey> archive_;
+      ObjectArchive<Key> archive_;
 #endif
 
       /*size_t next_free_obj_id_;*/
 
 
       //std::unordered_map<std::string, ArchiveKey> map_unit_ids_to_unit_ids_key_;
-      std::unordered_map<ArchiveKey, BaseTask*> map_key_to_task_;
-      std::unordered_map<size_t, ArchiveKey> map_hash_to_key_;
-      std::unordered_map<ArchiveKey, std::set<ArchiveKey>>
-        map_task_to_parents_, map_task_to_children_;
-      std::list<ArchiveKey> ready_;
+      std::unordered_map<Key, BaseTask*> map_key_to_task_;
+      std::unordered_map<size_t, Key> map_hash_to_key_;
+      std::unordered_map<Key, KeySet> map_task_to_parents_,
+        map_task_to_children_;
+      std::list<Key> ready_;
       //std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
       //std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
 
@@ -228,17 +228,17 @@ namespace TaskDistribution {
       template <size_t I, class Tuple, class T1>
       static auto make_args_tasks_tuple_detail(T1 const& arg1) ->
       typename std::enable_if<(I == std::tuple_size<Tuple>::value-1),
-               std::tuple<ArchiveKey>>::type
+               std::tuple<Key>>::type
       {
-        return std::tuple<ArchiveKey>();
+        return std::tuple<Key>();
       }
 
       template <size_t I, class Tuple, class T1>
       static auto make_args_tasks_tuple_detail(Task<T1> const& arg1) ->
       typename std::enable_if<(I == std::tuple_size<Tuple>::value-1),
-               std::tuple<ArchiveKey>>::type
+               std::tuple<Key>>::type
       {
-        return std::tuple<ArchiveKey>(arg1.task_key_);
+        return std::tuple<Key>(arg1.task_key_);
       }
 
       template <size_t I, class Tuple, class T1, class... Types>
@@ -246,13 +246,13 @@ namespace TaskDistribution {
       typename std::enable_if<(I < std::tuple_size<Tuple>::value-1),
         decltype(
             std::tuple_cat(
-              std::tuple<ArchiveKey>(),
+              std::tuple<Key>(),
               make_args_tasks_tuple_detail<I+1,Tuple>(args...)
             )
         )>::type
       {
         return std::tuple_cat(
-            std::tuple<ArchiveKey>(),
+            std::tuple<Key>(),
             make_args_tasks_tuple_detail<I+1,Tuple>(args...)
         );
       }
@@ -262,13 +262,13 @@ namespace TaskDistribution {
       typename std::enable_if<(I < std::tuple_size<Tuple>::value-1),
         decltype(
             std::tuple_cat(
-              std::tuple<ArchiveKey>(arg1.task_key_),
+              std::tuple<Key>(arg1.task_key_),
               make_args_tasks_tuple_detail<I+1,Tuple>(args...)
             )
         )>::type
       {
         return std::tuple_cat(
-            std::tuple<ArchiveKey>(arg1.task_key_),
+            std::tuple<Key>(arg1.task_key_),
             make_args_tasks_tuple_detail<I+1,Tuple>(args...)
         );
       }
