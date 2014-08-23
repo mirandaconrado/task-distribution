@@ -3,8 +3,6 @@
 
 #include "task.hpp"
 
-#include <boost/serialization/list.hpp>
-
 #include "task_manager.hpp"
 
 /*#include "computing_unit.hpp"

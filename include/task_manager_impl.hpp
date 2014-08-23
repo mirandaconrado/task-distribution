@@ -7,6 +7,7 @@
 #include "dependency_analyzer.hpp"
 #include "task.hpp"
 
+#include <boost/serialization/set.hpp>
 #include <functional>
 /*#include <boost/integer/static_min_max.hpp>*/
 
@@ -22,6 +23,7 @@ namespace TaskDistribution {
     typedef typename repeated_tuple<std::tuple_size<args_tuple_type>::value,
             ArchiveKey>::type args_tasks_tuple_type;
 
+    // Checks if the arguments are valid
     static_assert(
         std::tuple_size<args_tuple_type>::value == function_traits<Unit>::arity,
         "Invalid number of arguments."
@@ -35,6 +37,7 @@ namespace TaskDistribution {
         "Can't convert from arguments provided to expected."
     );
 
+    // Make tuples of normal arguments and task arguments
     args_tuple_type args_tuple(make_args_tuple<args_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(
         make_args_tasks_tuple<args_tasks_tuple_type>(args...));
@@ -65,21 +68,23 @@ namespace TaskDistribution {
     archive_.load(task_key, task_entry);
     task_entry.task_key = task_key;
 
+    // Creates children and parents if they don't exist
     if (!task_entry.parents_key.is_valid()) {
       task_entry.parents_key = new_key(ArchiveKey::Parents);
-      archive_.insert(task_entry.parents_key, std::list<ArchiveKey>());
+      archive_.insert(task_entry.parents_key, std::set<ArchiveKey>());
     }
 
     if (!task_entry.children_key.is_valid()) {
       task_entry.children_key = new_key(ArchiveKey::Children);
-      archive_.insert(task_entry.children_key, std::list<ArchiveKey>());
+      archive_.insert(task_entry.children_key, std::set<ArchiveKey>());
     }
 
     archive_.insert(task_key, task_entry);
 
-    // Checks if the task already exists
+    // Checks if the task in memory already exists
     auto it = map_key_to_task_.find(task_key);
     if (it == map_key_to_task_.end()) {
+      // If not, creates the task object
       BaseTask* task = new BaseTask(task_key);
       map_key_to_task_.emplace(task_key, task);
 
@@ -87,23 +92,26 @@ namespace TaskDistribution {
       DependencyAnalyzer da;
       da.analyze(args_tasks_tuple);
 
-      std::list<ArchiveKey> parents;
+      // Loads parents
+      std::set<ArchiveKey> parents;
       archive_.load(task_entry.parents_key, parents);
 
+      // For each parent found...
       for (auto& parent_key: da.dependencies) {
         BaseTask* parent = map_key_to_task_.at(parent_key);
 
         TaskEntry parent_entry;
         archive_.load(parent_key, parent_entry);
 
-        std::list<ArchiveKey> children;
+        std::set<ArchiveKey> children;
         archive_.load(parent_entry.children_key, children);
 
-        map_task_to_parents_[task_key].push_back(parent_key);
-        map_task_to_children_[parent_key].push_back(task_key);
+        // Creates bidirectional maps
+        map_task_to_parents_[task_key].insert(parent_key);
+        map_task_to_children_[parent_key].insert(task_key);
 
-        parents.push_back(parent_key);
-        children.push_back(task_key);
+        parents.insert(parent_key);
+        children.insert(task_key);
 
         archive_.insert(parent_entry.children_key, children);
         printf("added dependency (%lu,%lu)\n", parent_entry.task_key.obj_id,

@@ -112,9 +112,13 @@ namespace TaskDistribution {
 
       void task_completed(BaseTask *task);*/
 
+      // Checks if the given data already has a local key. If it does, returns
+      // it. Otherwise, creates a new key and inserts it into the archive. This
+      // is useful to avoid having lots of similar data with differente keys.
       template <class T>
       ArchiveKey get_key(T const& data, ArchiveKey::Type type);
 
+      // Creates a new key of a given type
       ArchiveKey new_key(ArchiveKey::Type type);
 
       /*void check_if_ready(ArchiveKey const& task_key);
@@ -143,7 +147,7 @@ namespace TaskDistribution {
       //std::unordered_map<std::string, ArchiveKey> map_unit_ids_to_unit_ids_key_;
       std::unordered_map<ArchiveKey, BaseTask*> map_key_to_task_;
       std::unordered_map<size_t, ArchiveKey> map_hash_to_key_;
-      std::unordered_map<ArchiveKey, std::list<ArchiveKey>>
+      std::unordered_map<ArchiveKey, std::set<ArchiveKey>>
         map_task_to_parents_, map_task_to_children_;
       //std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
       //std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
