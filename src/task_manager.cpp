@@ -103,40 +103,35 @@ namespace TaskDistribution {
       callable->execute(world_);
     }
   }
-#endif
+#endif*/
 
   void TaskManager::run_single() {
-    while (!free_.empty()) {
-      print_status();
-      BaseTask* t = free_.front();
-      free_.pop_front();
-      t->compute();
-      task_completed(t);
+    while (!ready_.empty()) {
+      //print_status();
+      Key task_key = ready_.front();
+      ready_.pop_front();
+      TaskEntry entry;
+      archive_.load(task_key, entry);
+      unit_manager_.process_local(entry);
+      task_completed(task_key);
     }
   }
 
-  void TaskManager::task_completed(BaseTask *task) {
-    for (auto& it: task->children_) {
-      it->parents_active_--;
-
-      add_free_task(it);
+  void TaskManager::task_completed(Key const& task_key) {
+    for (auto& child_key: map_task_to_children_.at(task_key)) {
+      map_key_to_task_.at(child_key)->parents_active_--;
+      if (map_key_to_task_.at(child_key)->parents_active_ == 0)
+        ready_.push_back(child_key);
     }
 
-    for (auto& it: task->parents_) {
-      it->children_active_--;
+    for (auto& parent_key: map_task_to_parents_.at(task_key))
+      map_key_to_task_.at(parent_key)->children_active_--;
 
-      if (it->children_active_ == 0)
-        unload(it);
-    }
-
-    if (task->children_.empty())
-        task->unload();
-
-    if (task->should_save())
-      count_map_.at(task->get_name()).second++;
+    //if (task->should_save())
+    //  count_map_.at(task->get_name()).second++;
   }
 
-  void TaskManager::unload(BaseTask *task) {
+  /*void TaskManager::unload(BaseTask *task) {
     task->unload();
 
     for (auto& it: task->parents_) {
