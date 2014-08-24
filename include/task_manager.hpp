@@ -14,6 +14,7 @@
 //#include <boost/predef.h>
 
 #include "compile_utils.hpp"
+#include "computing_unit_manager.hpp"
 #include "key.hpp"
 
 namespace TaskDistribution {
@@ -23,7 +24,8 @@ namespace TaskDistribution {
 
   class TaskManager {
     public:
-      TaskManager() { }
+      TaskManager():
+        unit_manager_(archive_) { }
 
       ~TaskManager() { }
 
@@ -157,6 +159,7 @@ namespace TaskDistribution {
       std::unordered_map<Key, KeySet> map_task_to_parents_,
         map_task_to_children_;
       std::list<Key> ready_;
+      ComputingUnitManager unit_manager_;
       //std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
       //std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
 
