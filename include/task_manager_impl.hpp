@@ -42,8 +42,6 @@ namespace TaskDistribution {
     args_tasks_tuple_type args_tasks_tuple(
         make_args_tasks_tuple<args_tasks_tuple_type>(args...));
 
-    printf("%s\n", typeid(args_tuple_type).name());
-
     // Gets keys
     Key computing_unit_key = get_key(computing_unit,
         Key::ComputingUnit);
@@ -95,8 +93,6 @@ namespace TaskDistribution {
       if (task->parents_active_ == 0)
         ready_.push_back(task_key);
     }
-    else
-      printf("found existing task\n");
 
     return Task<typename function_traits<Unit>::return_type>(task_key, this);
   }
