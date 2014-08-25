@@ -91,10 +91,10 @@ namespace TaskDistribution {
         return *this;
       }*/
 
-      template<class Archive>
+      /*template<class Archive>
       void serialize(Archive& ar, const unsigned int version) {
         ar & task_key_;
-      }
+      }*/
 
       // Can't use operator== as it may force type conversion
       bool is_same_task(Task<T> const& other) const {
