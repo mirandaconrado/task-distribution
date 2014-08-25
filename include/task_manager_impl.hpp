@@ -19,26 +19,29 @@ namespace TaskDistribution {
   template <class Unit, class... Args>
   Task<typename function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
-    typedef typename clean_tuple<Args...>::type args_tuple_type;
-    typedef typename repeated_tuple<std::tuple_size<args_tuple_type>::value,
-            Key>::type args_tasks_tuple_type;
+    typedef typename clean_tuple<Args...>::type given_args_tuple_type;
+    typedef typename repeated_tuple<sizeof...(Args), Key>::type
+      args_tasks_tuple_type;
+    typedef typename function_traits<Unit>::arg_tuple_type unit_args_tuple_type;
 
     // Checks if the arguments are valid
     static_assert(
-        std::tuple_size<args_tuple_type>::value == function_traits<Unit>::arity,
+        std::tuple_size<given_args_tuple_type>::value ==
+        std::tuple_size<unit_args_tuple_type>::value,
         "Invalid number of arguments."
     );
 
     static_assert(
         is_tuple_convertible<
-          args_tuple_type,
-          typename function_traits<Unit>::arg_tuple_type
+          given_args_tuple_type,
+          unit_args_tuple_type
         >::value,
         "Can't convert from arguments provided to expected."
     );
 
     // Make tuples of normal arguments and task arguments
-    args_tuple_type args_tuple(make_args_tuple<args_tuple_type>(args...));
+    unit_args_tuple_type args_tuple(
+        make_args_tuple<unit_args_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(
         make_args_tasks_tuple<args_tasks_tuple_type>(args...));
 
