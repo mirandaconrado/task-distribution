@@ -118,14 +118,24 @@ namespace TaskDistribution {
   }
 
   void TaskManager::task_completed(Key const& task_key) {
-    for (auto& child_key: map_task_to_children_.at(task_key)) {
-      map_key_to_task_.at(child_key)->parents_active_--;
-      if (map_key_to_task_.at(child_key)->parents_active_ == 0)
-        ready_.push_back(child_key);
+    {
+      auto it = map_task_to_children_.find(task_key);
+      if (it != map_task_to_children_.end()) {
+        for (auto& child_key: it->second) {
+          map_key_to_task_.at(child_key)->parents_active_--;
+          if (map_key_to_task_.at(child_key)->parents_active_ == 0)
+            ready_.push_back(child_key);
+        }
+      }
     }
 
-    for (auto& parent_key: map_task_to_parents_.at(task_key))
-      map_key_to_task_.at(parent_key)->children_active_--;
+    {
+      auto it = map_task_to_parents_.find(task_key);
+      if (it != map_task_to_parents_.end()) {
+        for (auto& parent_key: it->second)
+          map_key_to_task_.at(parent_key)->children_active_--;
+      }
+    }
 
     //if (task->should_save())
     //  count_map_.at(task->get_name()).second++;
