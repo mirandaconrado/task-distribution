@@ -77,11 +77,12 @@ namespace TaskDistribution {
       /*template <class To, class From>
       Task<To> new_conversion_task(From&& arg);*/
 
-      /*void add_free_task(BaseTask* task);
+      //void add_free_task(BaseTask* task);
 
+      // Proxy to either local or MPI task processing
       void run();
 
-      BaseTask* get(size_t hash) const;
+      /*BaseTask* get(size_t hash) const;
 
       void insert(size_t hash, std::string name, BaseTask* task);
 

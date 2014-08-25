@@ -25,8 +25,8 @@ namespace TaskDistribution {
     delete task;
   }*/
 
-  /*void TaskManager::run() {
-#if !(NO_MPI)
+  void TaskManager::run() {
+#if ENABLE_MPI
     if (world_.size() > 1) {
       if (world_.rank() == 0)
         run_manager();
@@ -37,7 +37,7 @@ namespace TaskDistribution {
       run_single();
   }
 
-#if !(NO_MPI)
+/*#if !(NO_MPI)
   void TaskManager::run_manager() {
     bool node_free[world_.size()-1];
 
