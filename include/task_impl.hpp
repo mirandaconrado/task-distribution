@@ -136,8 +136,9 @@ namespace TaskDistribution {
   template <class T>
   Task<T>::operator T() const {
     BOOST_ASSERT_MSG(task_key_.is_valid(), "invalid task key");
-    //return *boost::any_cast<T*>(task_manager_->get_result(task_key_));
-    return T();
+    T ret;
+    task_manager_->get_result(task_key_, ret);
+    return ret;
   }
 };
 

@@ -144,6 +144,19 @@ namespace TaskDistribution {
 
     return it->second;
   }
+
+  template <class T>
+  void TaskManager::get_result(Key const& task_key, T& ret) {
+    TaskEntry entry;
+    archive_.load(task_key, entry);
+    if (!entry.result_key.is_valid())
+      unit_manager_.process_local(entry);
+
+    archive_.load(entry.result_key, ret);
+
+    if (!entry.result_key.is_valid())
+      archive_.remove(entry.result_key);
+  }
 };
 
 #endif

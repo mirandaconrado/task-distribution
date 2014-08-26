@@ -133,6 +133,10 @@ namespace TaskDistribution {
       void add_dependency(BaseTask* child, TaskEntry const& child_entry,
           Key const& parent_key, KeySet& parents);
 
+      template <class> friend class Task;
+      template <class T>
+      void get_result(Key const& task_key, T& ret);
+
       /*void check_if_ready(ArchiveKey const& task_key);
 
       ArchiveKey new_object_key();
