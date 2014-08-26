@@ -74,28 +74,24 @@ namespace TaskDistribution {
 
     archive_.insert(task_key, task_entry);
 
-    // Checks if the task in memory already exists
-    auto it = map_key_to_task_.find(task_key);
-    if (it == map_key_to_task_.end()) {
-      // If not, creates the task object
-      BaseTask* task = new BaseTask(task_key);
-      map_key_to_task_.emplace(task_key, task);
+    // Do dependency analysis
+    DependencyAnalyzer da;
+    da.analyze(args_tasks_tuple);
 
-      // Do dependency analysis
-      DependencyAnalyzer da;
-      da.analyze(args_tasks_tuple);
+    // Add dependencies
+    KeySet parents;
+    archive_.load(task_entry.parents_key, parents);
 
-      // Loads parents
-      KeySet parents;
-      archive_.load(task_entry.parents_key, parents);
+    for (auto& parent_key: da.dependencies)
+      add_dependency(task_entry, parent_key, parents);
 
-      // Add dependencies
-      for (auto& parent_key: da.dependencies)
-        add_dependency(task, task_entry, parent_key, parents);
+    archive_.insert(task_entry.parents_key, parents);
 
-      if (task->parents_active_ == 0)
-        ready_.push_back(task_key);
-    }
+    // Check if task can be run now
+    if (task_entry.active_parents == 0)
+      ready_.push_back(task_key);
+
+    archive_.insert(task_key, task_entry);
 
     return Task<typename function_traits<Unit>::return_type>(task_key, this);
   }

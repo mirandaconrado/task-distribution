@@ -122,18 +122,13 @@ namespace TaskDistribution {
       auto it = map_task_to_children_.find(task_key);
       if (it != map_task_to_children_.end()) {
         for (auto& child_key: it->second) {
-          map_key_to_task_.at(child_key)->parents_active_--;
-          if (map_key_to_task_.at(child_key)->parents_active_ == 0)
+          TaskEntry child_entry;
+          archive_.load(child_key, child_entry);
+          child_entry.active_parents--;
+          if (child_entry.active_parents == 0)
             ready_.push_back(child_key);
+          archive_.insert(child_key, child_entry);
         }
-      }
-    }
-
-    {
-      auto it = map_task_to_parents_.find(task_key);
-      if (it != map_task_to_parents_.end()) {
-        for (auto& parent_key: it->second)
-          map_key_to_task_.at(parent_key)->children_active_--;
       }
     }
 
@@ -369,10 +364,8 @@ namespace TaskDistribution {
     }
   }
 
-  void TaskManager::add_dependency(BaseTask* child,
-      TaskEntry const& child_entry, Key const& parent_key, KeySet& parents) {
-    BaseTask* parent = map_key_to_task_.at(parent_key);
-
+  void TaskManager::add_dependency(TaskEntry& child_entry,
+      Key const& parent_key, KeySet& parents) {
     TaskEntry parent_entry;
     archive_.load(parent_key, parent_entry);
 
@@ -383,14 +376,15 @@ namespace TaskDistribution {
     map_task_to_parents_[child_entry.task_key].insert(parent_key);
     map_task_to_children_[parent_key].insert(child_entry.task_key);
 
-    parents.insert(parent_key);
+    // Only add as active if it's a new parent
+    if (parents.find(parent_key) == parents.end()) {
+      parents.insert(parent_key);
+      if (!parent_entry.result_key.is_valid() && parent_entry.should_save)
+        child_entry.active_parents++;
+    }
+
     children.insert(child_entry.task_key);
 
     archive_.insert(parent_entry.children_key, children);
-
-    if (!parent_entry.result_key.is_valid() && parent_entry.should_save)
-      child->parents_active_++;
-    if (!child_entry.result_key.is_valid() && child_entry.should_save)
-      parent->children_active_++;
   }
 };

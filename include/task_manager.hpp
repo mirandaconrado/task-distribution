@@ -18,7 +18,6 @@
 #include "key.hpp"
 
 namespace TaskDistribution {
-  class BaseTask;
   template <class T> class Task;
   struct TaskEntry;
 
@@ -130,8 +129,8 @@ namespace TaskDistribution {
       void create_family_lists(TaskEntry& entry);
 
       // Creates the bilateral link between child and parent task
-      void add_dependency(BaseTask* child, TaskEntry const& child_entry,
-          Key const& parent_key, KeySet& parents);
+      void add_dependency(TaskEntry& child_entry, Key const& parent_key,
+          KeySet& parents);
 
       template <class> friend class Task;
       template <class T>
@@ -160,8 +159,6 @@ namespace TaskDistribution {
       /*size_t next_free_obj_id_;*/
 
 
-      //std::unordered_map<std::string, ArchiveKey> map_unit_ids_to_unit_ids_key_;
-      std::unordered_map<Key, BaseTask*> map_key_to_task_;
       std::unordered_map<size_t, Key> map_hash_to_key_;
       std::unordered_map<Key, KeySet> map_task_to_parents_,
         map_task_to_children_;

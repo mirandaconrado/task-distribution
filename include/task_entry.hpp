@@ -25,9 +25,13 @@ namespace TaskDistribution {
     Key computing_unit_id_key;
     Key parents_key;
     Key children_key;
+    size_t active_parents;
     bool should_save, run_locally;
 
-    TaskEntry(): should_save(true), run_locally(false) { }
+    TaskEntry():
+      active_parents(0),
+      should_save(true),
+      run_locally(false) { }
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
@@ -37,6 +41,11 @@ namespace TaskDistribution {
       ar & arguments_tasks_key;
       ar & result_key;
       ar & computing_unit_id_key;
+      ar & parents_key;
+      ar & children_key;
+      ar & active_parents;
+      ar & should_save;
+      ar & run_locally;
     }
   };
 };
