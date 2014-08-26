@@ -10,9 +10,12 @@
 // To create a new computing unit, inherit from ComputingUnit<T> like this:
 // class MyUnit: public ComputingUnit<MyUnit>
 // and provide the following inside the class:
-// 1) the constructor should call ComputingUnit<MyUnit> with the desired unit's
+// 1) a constructor without arguments must be provided;
+// 2) the constructor must call ComputingUnit<MyUnit> with the desired unit's
 // name as argument;
-// 1) a method operator() that performs the computation desired.
+// 3) a const method operator() that performs the computation desired;
+// 4) if the object has any internal parameters, they user must create the
+// method serialize.
 //
 // Caveats:
 // 1) Only the return of operator() is considered as the result, so any changes
@@ -103,9 +106,7 @@ namespace TaskDistribution {
         return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
       }
 
-      // Allows access to id_
-      template <class> friend class ComputingUnit;
-
+      // Name of the computing unit given at construction
       std::string const* id_;
 
       // Map between ids and units.
