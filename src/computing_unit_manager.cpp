@@ -74,7 +74,7 @@ namespace TaskDistribution {
           Key task_key;
           world_.recv(status.source(), status.tag(), task_key);
 
-          tasks_ended_.push_back(task_key);
+          tasks_ended_.push_back(std::make_pair(task_key, status.source()));
         }
         else
           stop = true;
@@ -88,7 +88,8 @@ namespace TaskDistribution {
     world_.isend(remote, tags_.task_begin, task);
   }
 
-  KeyList const& ComputingUnitManager::get_tasks_ended() const {
+  ComputingUnitManager::TasksList const&
+  ComputingUnitManager::get_tasks_ended() const {
     return tasks_ended_;
   }
 

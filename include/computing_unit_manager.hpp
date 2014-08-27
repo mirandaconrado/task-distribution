@@ -44,6 +44,8 @@ namespace TaskDistribution {
         int task_end = 8;
       };
 
+      typedef std::list<std::pair<Key, int>> TasksList;
+
       // Constructs with default tags.
       ComputingUnitManager(boost::mpi::communicator& world,
           MPIObjectArchive<Key>& archive);
@@ -65,7 +67,7 @@ namespace TaskDistribution {
       void send_remote(TaskEntry const& task, int remote);
 
       // Interface for the list of tasks that have finished.
-      KeyList const& get_tasks_ended() const;
+      TasksList const& get_tasks_ended() const;
       void clear_tasks_ended();
 #endif
 
@@ -74,7 +76,7 @@ namespace TaskDistribution {
       boost::mpi::communicator& world_;
       Tags tags_;
       MPIObjectArchive<Key>& archive_;
-      KeyList tasks_ended_;
+      TasksList tasks_ended_;
 #else
       ObjectArchive<Key>& archive_;
 #endif
