@@ -88,8 +88,17 @@ namespace TaskDistribution {
     archive_.insert(task_entry.parents_key, parents);
 
     // Check if task can be run now
-    if (task_entry.active_parents == 0)
-      ready_.push_back(task_key);
+    if (task_entry.active_parents == 0) {
+      bool found = false;
+      for (auto& key : ready_) {
+        if (key == task_key) {
+          found = true;
+          break;
+        }
+      }
+      if (!found)
+        ready_.push_back(task_key);
+    }
 
     archive_.insert(task_key, task_entry);
 
