@@ -25,7 +25,7 @@ namespace TaskDistribution {
   // General key for the archive used.
   struct Key {
     enum Type {
-      Task,
+      Task = 0,
       ComputingUnit,
       Arguments,
       ArgumentsTasks,

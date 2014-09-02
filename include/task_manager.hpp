@@ -23,8 +23,16 @@ namespace TaskDistribution {
 
   class TaskManager {
     public:
+#if ENABLE_MPI
+      TaskManager(boost::mpi::communicator& world):
+        world_(world),
+        archive_(world_, [](Key const& key, boost::mpi::communicator& world)
+            { return key.is_valid() && world.rank() == 0; }),
+        unit_manager_(world_, archive_) { }
+#else
       TaskManager():
         unit_manager_(archive_) { }
+#endif
 
       ~TaskManager() { }
 
@@ -104,11 +112,13 @@ namespace TaskDistribution {
       void unload(BaseTask* task);*/
 
     private:
-/*#if !(NO_MPI)
+#if ENABLE_MPI
       void run_manager();
 
       void run_others();
-#endif*/
+
+      bool send_next_task(int slave);
+#endif
 
       // Runs locally until there are not more tasks
       void run_single();
@@ -150,7 +160,7 @@ namespace TaskDistribution {
           std::unordered_multimap<std::string, ArchiveKey>& map);*/
 
 #if ENABLE_MPI
-      boost::mpi::communicator world_;
+      boost::mpi::communicator& world_;
       MPIObjectArchive<Key> archive_;
 #else
       ObjectArchive<Key> archive_;

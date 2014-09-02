@@ -1,5 +1,7 @@
 #include "task_manager.hpp"
 
+#include "debug.hpp"
+
 namespace TaskDistribution {
   /*TaskManager::TaskManager():
     next_free_obj_id_(1) { }
@@ -27,6 +29,7 @@ namespace TaskDistribution {
 
   void TaskManager::run() {
 #if ENABLE_MPI
+    log_printf("run\n");
     if (world_.size() > 1) {
       if (world_.rank() == 0)
         run_manager();
@@ -37,73 +40,107 @@ namespace TaskDistribution {
       run_single();
   }
 
-/*#if !(NO_MPI)
+#if ENABLE_MPI
   void TaskManager::run_manager() {
-    bool node_free[world_.size()-1];
-
-    for (int i = 0; i < world_.size()-1; i++)
-      node_free[i] = true;
+    std::vector<int> tasks_per_node(world_.size()-1, 0);
 
     size_t n_running = 0;
-    size_t current = 0;
+    //size_t current = 0;
 
-    while (!free_.empty() || n_running != 0) {
-      print_status();
+    // Process whatever is left for MPI first
+    unit_manager_.process_remote();
 
-      if (free_.empty() || n_running == world_.size()-1) {
-        auto status = world_.probe();
-        size_t task_hash;
-        world_.recv(status.source(), 0, task_hash);
+    // Initial task allocation
+    log_printf("initial allocation\n");
+    int index = 1;
+    while (!ready_.empty()) {
+      // Maximum fixed allocation. TODO: not fixed
+      if (tasks_per_node[index-1] == 1)
+        break;
 
-        BaseTask* task = hash_map_.at(task_hash);
-        task->receive_value(world_, status.source());
-
-        n_running--;
-        node_free[status.source()-1] = true;
-        current = status.source()-1;
-
-        task_completed(task);
-      }
-
-      if (!free_.empty()) {
-        BaseTask* t = free_.front();
-        free_.pop_front();
-
-        if (t->run_locally()) {
-          t->compute();
-          task_completed(t);
-        } else {
-          while (!node_free[current])
-            current = (current+1) % (world_.size()-1);
-
-          if (t->assign(world_, current+1)) {
-            n_running++;
-            node_free[current] = false;
-          }
-        }
-      }
+      tasks_per_node[index-1]++;
+//      printf("tasks %d\n", tasks_per_node[index-1]);
+      if (!send_next_task(index))
+        break;
+      ++index;
+      ++n_running;
+      if (index == world_.size())
+        index = 1;
     }
 
-    size_t invalid_hash = BaseComputingUnit::get_invalid_id();
+    while (!ready_.empty() || n_running != 0) {
+      log_printf("loop\n");
+      //print_status();
+
+      // Process MPI stuff until a task has ended
+      unit_manager_.clear_tasks_ended();
+
+      do {
+        unit_manager_.process_remote();
+      } while (unit_manager_.get_tasks_ended().empty());
+
+      ComputingUnitManager::TasksList const& finished_tasks =
+        unit_manager_.get_tasks_ended();
+
+      log_printf("got some finished tasks\n");
+      // Send new tasks to idle nodes
+      for (auto& it : finished_tasks) {
+        int slave = it.second;
+        if (ready_.empty())
+          break;
+        --tasks_per_node[slave-1];
+        --n_running;
+        if (send_next_task(slave)) {
+          ++tasks_per_node[slave-1];
+          ++n_running;
+        }
+      }
+
+      for (auto& it : finished_tasks)
+        task_completed(it.first);
+
+    }
+
+    /*size_t invalid_hash = BaseComputingUnit::get_invalid_id();
 
     // Make other process end
     for (int i = 1; i < world_.size(); i++)
-      world_.send(i, 0, invalid_hash);
+      world_.send(i, 0, invalid_hash);*/
   }
 
   void TaskManager::run_others() {
     while (1) {
-      size_t callable_hash;
+      unit_manager_.process_remote();
+      /*size_t callable_hash;
       world_.recv(0, 0, callable_hash);
       BaseComputingUnit const* callable = BaseComputingUnit::get_by_id(callable_hash);
 
       if (!callable)
         break;
 
-      callable->execute(world_);
+      callable->execute(world_);*/
     }
   }
-#endif*/
+
+  bool TaskManager::send_next_task(int slave) {
+    if (ready_.empty())
+      return false;
+
+    Key task_key = ready_.front();
+    ready_.pop_front();
+    TaskEntry entry;
+    log_printf("sent task %lu to %d\n", task_key.obj_id, slave);
+
+    // If we already computed this task, gets the next one
+    if (entry.result_key.is_valid())
+      return send_next_task(slave);
+
+    archive_.load(task_key, entry);
+
+    unit_manager_.send_remote(entry, slave);
+    return true;
+  }
+#endif
 
   void TaskManager::run_single() {
     while (!ready_.empty()) {

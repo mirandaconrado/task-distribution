@@ -1,6 +1,14 @@
 #include "task_manager.hpp"
 
+#include "debug.hpp"
+
+#if ENABLE_MPI
+boost::mpi::environment env;
+boost::mpi::communicator world;
+TaskDistribution::TaskManager task_manager(world);
+#else
 TaskDistribution::TaskManager task_manager;
+#endif
 
 class Multiply:
   public TaskDistribution::ComputingUnit<Multiply> {
@@ -38,7 +46,8 @@ class Fibonacci:
       if (n <= 1)
         return 1;
 
-      printf("called with n=%d\n", n);
+      boost::mpi::communicator& world_ = world;
+      log_printf("called with n=%d\n", n);
       auto param_1 = task_manager.new_task(Fibonacci(), n-1);
       auto param_2 = task_manager.new_task(Fibonacci(), n-2);
 
@@ -60,7 +69,8 @@ class Fibonacci2:
     }
 
     int operator()(int v1, int v2) const {
-      printf("called with v1=%d and v2=%d\n", v1, v2);
+      boost::mpi::communicator& world_ = world;
+      log_printf("called with v1=%d and v2=%d\n", v1, v2);
 
       return v1 + v2;
     }
@@ -82,14 +92,28 @@ int main() {
   printf("creating task3\n");
   auto task_3 = task_manager.new_task(Multiply(), task_1, task_2);
   printf("%f\n", task_3());*/
+  boost::mpi::communicator& world_ = world;
 
-  int n = 10;
-  auto task_4 = task_manager.new_task(Fibonacci(), n);
-  TaskDistribution::Task<int> task_5 = create_fibonacci(n);
-  task_manager.run();
+  try {
+    if (world.rank() == 0) {
+      int n = 10;
+      //auto task_4 = task_manager.new_task(Fibonacci(), n);
+      TaskDistribution::Task<int> task_5 = create_fibonacci(n);
+      task_manager.run();
 
-  printf("%d\n", task_4());
-  printf("%d\n", task_5());
+//      printf("[%d] result = %d\n", world.rank(), task_4());
+      log_printf("result = %d\n", task_5());
+    }
+    else {
+      Fibonacci();
+      Fibonacci2();
+      TaskDistribution::IdentityComputingUnit<int>();
+      task_manager.run();
+    }
+  }
+  catch (...) {
+    log_printf("exception!\n");
+  }
 
   return 0;
 }

@@ -72,7 +72,7 @@ namespace TaskDistribution {
     // Creates children and parents if they don't exist
     create_family_lists(task_entry);
 
-    archive_.insert(task_key, task_entry);
+    //archive_.insert(task_key, task_entry);
 
     // Do dependency analysis
     DependencyAnalyzer da;
@@ -88,7 +88,7 @@ namespace TaskDistribution {
     archive_.insert(task_entry.parents_key, parents);
 
     // Check if task can be run now
-    if (task_entry.active_parents == 0) {
+    if (task_entry.active_parents == 0 && task_entry.should_save) {
       bool found = false;
       for (auto& key : ready_) {
         if (key == task_key) {

@@ -2,6 +2,8 @@
 
 #include "computing_unit.hpp"
 
+#include "debug.hpp"
+
 namespace TaskDistribution {
 #if ENABLE_MPI
   ComputingUnitManager::ComputingUnitManager(boost::mpi::communicator& world,
@@ -36,23 +38,31 @@ namespace TaskDistribution {
 
     // Gets the correct computing unit and executes it
     unit = BaseComputingUnit::get_by_key(task.computing_unit_id_key);
+    log_printf("unit id key = %lu\n", task.computing_unit_id_key.obj_id);
     if (unit == nullptr) {
       std::string computing_unit_id;
+      log_printf("loading computing id\n");
       archive_.load(task.computing_unit_id_key, computing_unit_id);
+      log_printf("unit id = %s\n", computing_unit_id.c_str());
       // Assumes true is returned always.
       BaseComputingUnit::bind_key(computing_unit_id,
           task.computing_unit_id_key);
       unit = BaseComputingUnit::get_by_key(task.computing_unit_id_key);
     }
 
+    log_printf("unit = %p\n", unit);
     unit->execute(archive_, task, *this);
+    log_printf("finished executing\n");
 
-    archive_.insert(task.task_key, task);
+    if (task.should_save)
+      archive_.insert(task.task_key, task);
   }
 
 #if ENABLE_MPI
   void ComputingUnitManager::process_remote() {
+    if (world_.rank() == 0) log_printf("Started archive processing\n");
     archive_.mpi_process();
+    if (world_.rank() == 0) log_printf("Finished archive processing\n");
 
     bool stop = false;
     while (!stop) {
@@ -61,6 +71,8 @@ namespace TaskDistribution {
       auto status_opt = world_.iprobe();
       if (status_opt) {
         auto status = status_opt.get();
+
+        log_printf("processing remote (%d,%d)\n", status.source(), status.tag());
 
         if (status.tag() == tags_.task_begin) {
           TaskEntry task;
