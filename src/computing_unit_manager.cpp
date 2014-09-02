@@ -7,14 +7,23 @@
 namespace TaskDistribution {
 #if ENABLE_MPI
   ComputingUnitManager::ComputingUnitManager(boost::mpi::communicator& world,
-      MPIObjectArchive<Key>& archive):
-    ComputingUnitManager(Tags(), world, archive) { }
+      MPIHandler& handler, MPIObjectArchive<Key>& archive):
+    ComputingUnitManager(Tags(), world, handler, archive) { }
 
   ComputingUnitManager::ComputingUnitManager(Tags const& tags,
-      boost::mpi::communicator& world, MPIObjectArchive<Key>& archive):
+      boost::mpi::communicator& world, MPIHandler& handler,
+      MPIObjectArchive<Key>& archive):
     world_(world),
+    handler_(handler),
     tags_(tags),
-    archive_(archive) { }
+    archive_(archive) {
+      handler.insert(tags_.task_begin,
+          std::bind(&ComputingUnitManager::process_task_begin, this,
+            std::placeholders::_1, tags.task_begin));
+      handler.insert(tags_.task_end,
+          std::bind(&ComputingUnitManager::process_task_end, this,
+            std::placeholders::_1, tags.task_end));
+    }
 #else
   ComputingUnitManager::ComputingUnitManager(
       ObjectArchive<Key>& archive):
@@ -60,39 +69,20 @@ namespace TaskDistribution {
 
 #if ENABLE_MPI
   void ComputingUnitManager::process_remote() {
-    if (world_.rank() == 0) log_printf("Started archive processing\n");
-    archive_.mpi_process();
-    if (world_.rank() == 0) log_printf("Finished archive processing\n");
+    while (1) {
+      //if (world_.rank() == 0) log_printf("calling run from %s:%d\n", __FILE__, __LINE__);
+      handler_.run();
 
-    bool stop = false;
-    while (!stop) {
-      // Probes world and, if something is found, check if it's a tag it can
-      // deal right here. Otherwise, stops.
-      auto status_opt = world_.iprobe();
-      if (status_opt) {
-        auto status = status_opt.get();
+      if (tasks_requested_.empty())
+        break;
 
-        log_printf("processing remote (%d,%d)\n", status.source(), status.tag());
+      auto task_description = tasks_requested_.front();
+      tasks_requested_.pop_front();
 
-        if (status.tag() == tags_.task_begin) {
-          TaskEntry task;
-          world_.recv(status.source(), status.tag(), task);
+      process_local(task_description.first);
 
-          process_local(task);
-
-          world_.isend(status.source(), tags_.task_end, task.task_key);
-        }
-        else if (status.tag() == tags_.task_end) {
-          Key task_key;
-          world_.recv(status.source(), status.tag(), task_key);
-
-          tasks_ended_.push_back(std::make_pair(task_key, status.source()));
-        }
-        else
-          stop = true;
-      }
-      else
-        stop = true;
+      world_.isend(task_description.second, tags_.task_end,
+          task_description.first.task_key);
     }
   }
 
@@ -107,6 +97,24 @@ namespace TaskDistribution {
 
   void ComputingUnitManager::clear_tasks_ended() {
     tasks_ended_.clear();
+  }
+
+  bool ComputingUnitManager::process_task_begin(int source, int tag) {
+    TaskEntry task;
+    world_.recv(source, tag, task);
+
+    tasks_requested_.push_back(std::make_pair(task, source));
+
+    return true;
+  }
+
+  bool ComputingUnitManager::process_task_end(int source, int tag) {
+    Key task_key;
+    world_.recv(source, tag, task_key);
+
+    tasks_ended_.push_back(std::make_pair(task_key, source));
+
+    return true;
   }
 #endif
 }

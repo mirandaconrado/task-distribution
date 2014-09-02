@@ -26,6 +26,7 @@
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #include "mpi_object_archive.hpp"
+#include "mpi_handler.hpp"
 #endif
 
 #include "object_archive.hpp"
@@ -47,10 +48,10 @@ namespace TaskDistribution {
       typedef std::list<std::pair<Key, int>> TasksList;
 
       // Constructs with default tags.
-      ComputingUnitManager(boost::mpi::communicator& world,
+      ComputingUnitManager(boost::mpi::communicator& world, MPIHandler& handler,
           MPIObjectArchive<Key>& archive);
       ComputingUnitManager(Tags const& tags, boost::mpi::communicator& world,
-          MPIObjectArchive<Key>& archive);
+          MPIHandler& handler, MPIObjectArchive<Key>& archive);
 #else
       ComputingUnitManager(ObjectArchive<Key>& archive);
 #endif
@@ -73,10 +74,15 @@ namespace TaskDistribution {
 
     private:
 #if ENABLE_MPI
+      bool process_task_begin(int source, int tag);
+      bool process_task_end(int source, int tag);
+
       boost::mpi::communicator& world_;
+      MPIHandler& handler_;
       Tags tags_;
       MPIObjectArchive<Key>& archive_;
       TasksList tasks_ended_;
+      std::list<std::pair<TaskEntry,int>> tasks_requested_;
 #else
       ObjectArchive<Key>& archive_;
 #endif

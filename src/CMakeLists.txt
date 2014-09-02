@@ -5,6 +5,7 @@ add_library(task_distribution
 )
 
 target_link_libraries(task_distribution
+  mpi_handler
   ${Boost_LIBRARIES}
   ${MPI_LIB}
 )

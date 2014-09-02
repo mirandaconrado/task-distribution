@@ -26,6 +26,19 @@ namespace TaskDistribution {
 
     delete task;
   }*/
+#if ENABLE_MPI
+  TaskManager::TaskManager(boost::mpi::communicator& world,
+      MPIHandler& handler):
+    world_(world),
+    handler_(handler),
+    archive_(world_, handler_,
+        [](Key const& key, boost::mpi::communicator& world)
+        { return key.is_valid() && world.rank() == 0; }),
+    unit_manager_(world_, handler_, archive_) { }
+#else
+    TaskManager::TaskManager():
+      unit_manager_(archive_) { }
+#endif
 
   void TaskManager::run() {
 #if ENABLE_MPI

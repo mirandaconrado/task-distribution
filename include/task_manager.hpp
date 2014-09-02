@@ -4,6 +4,7 @@
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #include "mpi_object_archive.hpp"
+#include "mpi_handler.hpp"
 #else
 #include "object_archive.hpp"
 #endif
@@ -24,14 +25,9 @@ namespace TaskDistribution {
   class TaskManager {
     public:
 #if ENABLE_MPI
-      TaskManager(boost::mpi::communicator& world):
-        world_(world),
-        archive_(world_, [](Key const& key, boost::mpi::communicator& world)
-            { return key.is_valid() && world.rank() == 0; }),
-        unit_manager_(world_, archive_) { }
+      TaskManager(boost::mpi::communicator& world, MPIHandler& handler);
 #else
-      TaskManager():
-        unit_manager_(archive_) { }
+      TaskManager();
 #endif
 
       ~TaskManager() { }
@@ -161,6 +157,7 @@ namespace TaskDistribution {
 
 #if ENABLE_MPI
       boost::mpi::communicator& world_;
+      MPIHandler& handler_;
       MPIObjectArchive<Key> archive_;
 #else
       ObjectArchive<Key> archive_;

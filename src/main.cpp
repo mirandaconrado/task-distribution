@@ -5,7 +5,8 @@
 #if ENABLE_MPI
 boost::mpi::environment env;
 boost::mpi::communicator world;
-TaskDistribution::TaskManager task_manager(world);
+MPIHandler handler(world);
+TaskDistribution::TaskManager task_manager(world, handler);
 #else
 TaskDistribution::TaskManager task_manager;
 #endif
@@ -94,7 +95,7 @@ int main() {
   printf("%f\n", task_3());*/
   boost::mpi::communicator& world_ = world;
 
-  try {
+//  try {
     if (world.rank() == 0) {
       int n = 10;
       //auto task_4 = task_manager.new_task(Fibonacci(), n);
@@ -110,10 +111,10 @@ int main() {
       TaskDistribution::IdentityComputingUnit<int>();
       task_manager.run();
     }
-  }
+/*  }
   catch (...) {
     log_printf("exception!\n");
-  }
+  }*/
 
   return 0;
 }
