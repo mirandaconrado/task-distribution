@@ -77,12 +77,15 @@ namespace TaskDistribution {
         break;
       ++index;
       ++n_running;
+      log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
       if (index == world_.size())
         index = 1;
     }
 
     while (!ready_.empty() || n_running != 0) {
       log_printf("loop\n");
+      log_printf("empty = %d\n", ready_.empty());
+      log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
       //print_status();
 
       // Process MPI stuff until a task has ended
@@ -96,20 +99,24 @@ namespace TaskDistribution {
         unit_manager_.get_tasks_ended();
 
       log_printf("got some finished tasks\n");
-      for (auto& it : finished_tasks)
+      for (auto& it : finished_tasks) {
         task_completed(it.first);
+        int slave = it.second;
+        --tasks_per_node[slave-1];
+        --n_running;
+        log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
+      }
 
       log_printf("sending new tasks\n");
       // Send new tasks to idle nodes
       for (auto& it : finished_tasks) {
-        int slave = it.second;
         if (ready_.empty())
           break;
-        --tasks_per_node[slave-1];
-        --n_running;
+        int slave = it.second;
         if (send_next_task(slave)) {
           ++tasks_per_node[slave-1];
           ++n_running;
+          log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
         }
       }
 
