@@ -26,8 +26,7 @@ namespace TaskDistribution {
     public:
 #if ENABLE_MPI
       struct Tags {
-        int have_tasks = 9;
-        int finish = 10;
+        int finish = 9;
       };
 
       TaskManager(boost::mpi::communicator& world, MPIHandler& handler);
@@ -122,13 +121,9 @@ namespace TaskDistribution {
 
       bool send_next_task(int slave);
 
-      bool process_have_tasks(int source, int tag);
       bool process_finish(int source, int tag);
 
-      void broadcast_have_tasks(bool value);
       void broadcast_finish();
-
-      bool someone_has_tasks();
 #endif
 
       // Runs locally until there are not more tasks
@@ -175,7 +170,6 @@ namespace TaskDistribution {
       boost::mpi::communicator& world_;
       MPIHandler& handler_;
       MPIObjectArchive<Key> archive_;
-      std::vector<bool> have_tasks_;
       bool finished_;
 #else
       ObjectArchive<Key> archive_;

@@ -102,7 +102,7 @@ int main() {
       TaskDistribution::Task<int> task_5 = create_fibonacci(n);
       task_manager.run();
 
-//      printf("[%d] result = %d\n", world.rank(), task_4());
+      //log_printf("result = %d\n", task_4());
       log_printf("result = %d\n", task_5());
     }
     else {

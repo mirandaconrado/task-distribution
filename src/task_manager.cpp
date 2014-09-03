@@ -39,16 +39,11 @@ namespace TaskDistribution {
     archive_(world_, handler_,
         [](Key const& key, boost::mpi::communicator& world)
         { return key.is_valid() && world.rank() == 0; }),
-    have_tasks_(world.size(), false),
     finished_(false),
     unit_manager_(world_, handler_, archive_) {
-      handler.insert(tags_.have_tasks,
-          std::bind(&TaskManager::process_have_tasks, this,
-            std::placeholders::_1, tags.have_tasks));
       handler.insert(tags_.finish,
           std::bind(&TaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
-      broadcast_have_tasks(false);
     }
 
   TaskManager::~TaskManager() {
@@ -66,10 +61,10 @@ namespace TaskDistribution {
 #if ENABLE_MPI
     log_printf("run\n");
     if (world_.size() > 1) {
-      //if (world_.rank() == 0)
+      if (world_.rank() == 0)
         run_manager();
-      //else
-       // run_others();
+      else
+        run_others();
     } else
 #endif
       run_single();
@@ -78,95 +73,78 @@ namespace TaskDistribution {
 #if ENABLE_MPI
   void TaskManager::run_manager() {
     std::vector<int> tasks_per_node(world_.size()-1, 0);
-    bool had_tasks = false;
 
-    // While master didn't tell everyone to stop
-    while (!finished_) {
-      unit_manager_.process_remote();
+    log_printf("processing\n");
 
-      if (ready_.empty()) {
-        if (had_tasks)
-          broadcast_have_tasks(false);
-      }
-      else {
-        had_tasks = true;
-        log_printf("processing\n");
+    size_t n_running = 0;
+    //size_t current = 0;
 
-        size_t n_running = 0;
-        //size_t current = 0;
+    // Process whatever is left for MPI first
+    unit_manager_.process_remote();
 
-        // Process whatever is left for MPI first
+    // Initial task allocation
+    log_printf("initial allocation\n");
+    int index = 1;
+    while (!ready_.empty()) {
+      // Maximum fixed allocation. TODO: not fixed
+      if (tasks_per_node[index-1] == 1)
+        break;
+
+      tasks_per_node[index-1]++;
+      //      printf("tasks %d\n", tasks_per_node[index-1]);
+      if (!send_next_task(index))
+        break;
+      ++index;
+      ++n_running;
+      log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
+      if (index == world_.size())
+        index = 1;
+    }
+
+    while (!ready_.empty() || n_running != 0) {
+      log_printf("loop\n");
+      log_printf("empty = %d\n", ready_.empty());
+      log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
+      //print_status();
+
+      // Process MPI stuff until a task has ended
+      unit_manager_.clear_tasks_ended();
+
+      do {
         unit_manager_.process_remote();
+      } while (unit_manager_.get_tasks_ended().empty());
 
-        // Initial task allocation
-        log_printf("initial allocation\n");
-        int index = 1;
-        while (!ready_.empty()) {
-          // Maximum fixed allocation. TODO: not fixed
-          if (tasks_per_node[index-1] == 1)
-            break;
+      ComputingUnitManager::TasksList const& finished_tasks =
+        unit_manager_.get_tasks_ended();
 
-          tasks_per_node[index-1]++;
-          //      printf("tasks %d\n", tasks_per_node[index-1]);
-          if (!send_next_task(index))
-            break;
-          ++index;
+      log_printf("got some finished tasks\n");
+      for (auto& it : finished_tasks) {
+        task_completed(it.first);
+        int slave = it.second;
+        --tasks_per_node[slave-1];
+        --n_running;
+        log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
+      }
+
+      log_printf("sending new tasks\n");
+      // Send new tasks to idle nodes
+      for (auto& it : finished_tasks) {
+        if (ready_.empty())
+          break;
+        int slave = it.second;
+        if (send_next_task(slave)) {
+          ++tasks_per_node[slave-1];
           ++n_running;
           log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
-          if (index == world_.size())
-            index = 1;
-        }
-
-        while (!ready_.empty() || n_running != 0) {
-          log_printf("loop\n");
-          log_printf("empty = %d\n", ready_.empty());
-          log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
-          //print_status();
-
-          // Process MPI stuff until a task has ended
-          unit_manager_.clear_tasks_ended();
-
-          do {
-            unit_manager_.process_remote();
-          } while (unit_manager_.get_tasks_ended().empty());
-
-          ComputingUnitManager::TasksList const& finished_tasks =
-            unit_manager_.get_tasks_ended();
-
-          log_printf("got some finished tasks\n");
-          for (auto& it : finished_tasks) {
-            task_completed(it.first);
-            int slave = it.second;
-            --tasks_per_node[slave-1];
-            --n_running;
-            log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
-          }
-
-          log_printf("sending new tasks\n");
-          // Send new tasks to idle nodes
-          for (auto& it : finished_tasks) {
-            if (ready_.empty())
-              break;
-            int slave = it.second;
-            if (send_next_task(slave)) {
-              ++tasks_per_node[slave-1];
-              ++n_running;
-              log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
-            }
-          }
         }
       }
-
-      // Only node 0 can break if nobody has tasks
-      if (!someone_has_tasks() && world_.rank() == 0)
-        break;
     }
 
     log_printf("finished running\n");
   }
 
   void TaskManager::run_others() {
-    while (1) {
+    while (!finished_) {
       unit_manager_.process_remote();
       /*size_t callable_hash;
       world_.recv(0, 0, callable_hash);
@@ -198,42 +176,15 @@ namespace TaskDistribution {
     return true;
   }
 
-  bool TaskManager::process_have_tasks(int source, int tag) {
-    bool have_tasks;
-    world_.recv(source, tag, have_tasks);
-
-    log_printf("received have tasks (%d) from (%d)\n", have_tasks, source);
-
-    have_tasks_[source] = have_tasks;
-
-    return true;
-  }
-
   bool TaskManager::process_finish(int source, int tag) {
     world_.recv(source, tag, finished_);
 
     return true;
   }
 
-  void TaskManager::broadcast_have_tasks(bool value) {
-    log_printf("broadcasting have tasks %d\n", value);
-    for (int i = 0; i < world_.size(); i++)
-      if (i != world_.rank())
-        world_.send(i, tags_.have_tasks, value);
-
-    have_tasks_[world_.rank()] = value;
-  }
-
   void TaskManager::broadcast_finish() {
     for (int i = 1; i < world_.size(); i++)
       world_.send(i, tags_.finish, true);
-  }
-
-  bool TaskManager::someone_has_tasks() {
-    for (int i = 0; i < world_.size(); i++)
-      if (have_tasks_[i])
-        return true;
-    return false;
   }
 #endif
 

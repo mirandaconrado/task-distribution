@@ -98,11 +98,8 @@ namespace TaskDistribution {
       }
 
       // If task doesn't exist already, tell everyone we have a new task
-      if (!found) {
-        if (ready_.empty())
-          broadcast_have_tasks(true);
+      if (!found)
         ready_.push_back(task_key);
-      }
     }
 
     archive_.insert(task_key, task_entry);
