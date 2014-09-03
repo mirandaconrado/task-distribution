@@ -96,6 +96,10 @@ namespace TaskDistribution {
         unit_manager_.get_tasks_ended();
 
       log_printf("got some finished tasks\n");
+      for (auto& it : finished_tasks)
+        task_completed(it.first);
+
+      log_printf("sending new tasks\n");
       // Send new tasks to idle nodes
       for (auto& it : finished_tasks) {
         int slave = it.second;
@@ -109,8 +113,6 @@ namespace TaskDistribution {
         }
       }
 
-      for (auto& it : finished_tasks)
-        task_completed(it.first);
 
     }
 
