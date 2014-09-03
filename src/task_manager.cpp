@@ -80,7 +80,7 @@ namespace TaskDistribution {
     //size_t current = 0;
 
     // Process whatever is left for MPI first
-    unit_manager_.process_remote();
+    handler_.run();
 
     // Initial task allocation
     log_printf("initial allocation\n");
@@ -111,7 +111,7 @@ namespace TaskDistribution {
       unit_manager_.clear_tasks_ended();
 
       do {
-        unit_manager_.process_remote();
+        handler_.run();
       } while (unit_manager_.get_tasks_ended().empty());
 
       ComputingUnitManager::TasksList const& finished_tasks =
