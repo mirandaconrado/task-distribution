@@ -1,7 +1,5 @@
 #include "task_manager.hpp"
 
-#include "debug.hpp"
-
 namespace TaskDistribution {
   /*TaskManager::TaskManager():
     next_free_obj_id_(1) { }
@@ -59,7 +57,6 @@ namespace TaskDistribution {
 
   void TaskManager::run() {
 #if ENABLE_MPI
-    log_printf("run\n");
     if (world_.size() > 1) {
       if (world_.rank() == 0)
         run_manager();
@@ -74,8 +71,6 @@ namespace TaskDistribution {
   void TaskManager::run_manager() {
     std::vector<int> tasks_per_node(world_.size()-1, 0);
 
-    log_printf("processing\n");
-
     size_t n_running = 0;
     //size_t current = 0;
 
@@ -83,7 +78,6 @@ namespace TaskDistribution {
     handler_.run();
 
     // Initial task allocation
-    log_printf("initial allocation\n");
     int index = 1;
     while (!ready_.empty()) {
       // Maximum fixed allocation. TODO: not fixed
@@ -96,15 +90,11 @@ namespace TaskDistribution {
         break;
       ++index;
       ++n_running;
-      log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
       if (index == world_.size())
         index = 1;
     }
 
     while (!ready_.empty() || n_running != 0) {
-      log_printf("loop\n");
-      log_printf("empty = %d\n", ready_.empty());
-      log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
       //print_status();
 
       // Process MPI stuff until a task has ended
@@ -117,16 +107,13 @@ namespace TaskDistribution {
       ComputingUnitManager::TasksList const& finished_tasks =
         unit_manager_.get_tasks_ended();
 
-      log_printf("got some finished tasks\n");
       for (auto& it : finished_tasks) {
         task_completed(it.first);
         int slave = it.second;
         --tasks_per_node[slave-1];
         --n_running;
-        log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
       }
 
-      log_printf("sending new tasks\n");
       // Send new tasks to idle nodes
       for (auto& it : finished_tasks) {
         if (ready_.empty())
@@ -135,12 +122,10 @@ namespace TaskDistribution {
         if (send_next_task(slave)) {
           ++tasks_per_node[slave-1];
           ++n_running;
-          log_printf("n_running = %lu (%d)\n", n_running, __LINE__);
         }
       }
     }
 
-    log_printf("finished running\n");
   }
 
   void TaskManager::run_others() {
@@ -164,7 +149,6 @@ namespace TaskDistribution {
     Key task_key = ready_.front();
     ready_.pop_front();
     TaskEntry entry;
-    log_printf("sent task %lu to %d\n", task_key.obj_id, slave);
 
     // If we already computed this task, gets the next one
     if (entry.result_key.is_valid())

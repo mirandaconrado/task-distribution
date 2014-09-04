@@ -7,8 +7,6 @@
 
 #include <functional>
 
-#include "debug.hpp"
-
 namespace TaskDistribution {
   template <class T>
   ComputingUnit<T>::ComputingUnit(std::string const& name) {

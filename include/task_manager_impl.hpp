@@ -9,10 +9,6 @@
 
 #include <boost/serialization/set.hpp>
 #include <functional>
-/*#include <boost/integer/static_min_max.hpp>*/
-
-//#include <algorithm>
-//#include <tuple>
 
 namespace TaskDistribution {
 
@@ -119,24 +115,6 @@ namespace TaskDistribution {
   Task<T> TaskManager::new_identity_task(Task<T> const& arg) {
     return arg;
   }
-
-  /*template <class To, class From>
-  Task<To> TaskManager::new_conversion_task(From const& arg) {
-    return new_task(ConvertComputingUnit<From,To>(), std::forward<From>(arg));
- }*/
-
-  /*template <class T>
-  void TaskManager::save(BaseTask* t, T const& val) {
-    size_t id = t->get_id();
-    archive_.insert(id, val);
-  }
-
-  template <class T>
-  bool TaskManager::load(BaseTask* t, T& val) {
-    size_t id = t->get_id();
-    size_t size = archive_.load(id, val);
-    return size == 0;
-  }*/
 
   template <class T>
   Key TaskManager::get_key(T const& data, Key::Type type) {

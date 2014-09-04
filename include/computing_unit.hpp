@@ -153,31 +153,6 @@ namespace TaskDistribution {
         return arg;
       }
   };
-
-  template <class From, class To>
-  class ConvertComputingUnit:
-    public ComputingUnit<ConvertComputingUnit<From, To>> {
-    public:
-      ConvertComputingUnit():
-        ComputingUnit<ConvertComputingUnit<From, To>>("convert") {
-        static_assert(std::is_convertible<From,To>::value,
-            "Invalid ConvertComputingUnit as types aren't convertible!");
-        static_assert(!std::is_same<From,To>::value,
-            "Invalid ConvertComputingUnit as types are the same!");
-      }
-
-      virtual bool run_locally() const {
-        return true;
-      }
-
-      virtual bool should_save() const {
-        return false;
-      }
-
-      To operator()(From const& arg) const {
-        return arg;
-      }
-  };
 };
 
 #include "computing_unit_impl.hpp"
