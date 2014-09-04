@@ -96,21 +96,22 @@ int main() {
   boost::mpi::communicator& world_ = world;
 
 //  try {
-    if (world.rank() == 0) {
+    //if (world.rank() == 0) {
       int n = 10;
       //auto task_4 = task_manager.new_task(Fibonacci(), n);
       TaskDistribution::Task<int> task_5 = create_fibonacci(n);
       task_manager.run();
 
       //log_printf("result = %d\n", task_4());
+    if (world.rank() == 0) {
       log_printf("result = %d\n", task_5());
     }
-    else {
+    /*else {
       Fibonacci();
       Fibonacci2();
       TaskDistribution::IdentityComputingUnit<int>();
       task_manager.run();
-    }
+    }*/
 /*  }
   catch (...) {
     log_printf("exception!\n");

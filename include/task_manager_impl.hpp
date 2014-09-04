@@ -19,6 +19,9 @@ namespace TaskDistribution {
   template <class Unit, class... Args>
   Task<typename function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
+    if (world_.rank() != 0)
+      return Task<typename function_traits<Unit>::return_type>(Key(), this);
+
     typedef typename clean_tuple<Args...>::type given_args_tuple_type;
     typedef typename repeated_tuple<sizeof...(Args), Key>::type
       args_tasks_tuple_type;
