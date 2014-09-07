@@ -1,3 +1,6 @@
 [submodule "lib/object-archive"]
 	path = lib/object-archive
 	url = https://github.com/mirandaconrado/object-archive.git
+[submodule "lib/compile-utils"]
+	path = lib/compile-utils
+	url = git@github.com:mirandaconrado/compile-utils.git

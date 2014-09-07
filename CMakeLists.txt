@@ -13,6 +13,7 @@ endif()
 
 set(CMAKE_CXX_COMPILER "clang++")
 include_directories(include)
+include_directories(lib/compile-utils/include)
 include_directories(lib/object-archive/include)
 include_directories(lib/object-archive/lib/mpi_handler/include)
 include_directories(${Boost_INCLUDE_DIRS})

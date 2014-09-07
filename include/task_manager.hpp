@@ -1,6 +1,7 @@
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
+#include "function_traits.hpp"
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #include "mpi_object_archive.hpp"
@@ -14,7 +15,6 @@
 
 //#include <boost/predef.h>
 
-#include "compile_utils.hpp"
 #include "computing_unit_manager.hpp"
 #include "key.hpp"
 
@@ -74,7 +74,7 @@ namespace TaskDistribution {
       //-- End Archive mappings --
 
       template <class Unit, class... Args>
-      Task<typename function_traits<Unit>::return_type>
+      Task<typename CompileUtils::function_traits<Unit>::return_type>
       new_task(Unit const& computing_unit, Args const&... args);
 
       template <class T>

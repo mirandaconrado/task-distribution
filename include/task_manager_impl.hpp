@@ -1,6 +1,10 @@
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_IMPL_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_IMPL_HPP__
 
+#include "clean_tuple.hpp"
+#include "is_tuple_convertible.hpp"
+#include "repeated_tuple.hpp"
+
 #include "task_manager.hpp"
 
 #include "computing_unit.hpp"
@@ -13,15 +17,19 @@
 namespace TaskDistribution {
 
   template <class Unit, class... Args>
-  Task<typename function_traits<Unit>::return_type>
+  Task<typename CompileUtils::function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
     if (world_.rank() != 0)
-      return Task<typename function_traits<Unit>::return_type>(Key(), this);
+      return Task<
+        typename CompileUtils::function_traits<Unit>::return_type>(Key(), this);
 
-    typedef typename clean_tuple<Args...>::type given_args_tuple_type;
-    typedef typename repeated_tuple<sizeof...(Args), Key>::type
+    typedef typename CompileUtils::clean_tuple<Args...>::type
+      given_args_tuple_type;
+    typedef typename CompileUtils::repeated_tuple<sizeof...(Args), Key>::type
       args_tasks_tuple_type;
-    typedef typename function_traits<Unit>::arg_tuple_type unit_args_tuple_type;
+    typedef typename CompileUtils::clean_tuple_from_tuple<
+      typename CompileUtils::function_traits<Unit>::arg_tuple_type>::type
+      unit_args_tuple_type;
 
     // Checks if the arguments are valid
     static_assert(
@@ -31,7 +39,7 @@ namespace TaskDistribution {
     );
 
     static_assert(
-        is_tuple_convertible<
+        CompileUtils::is_tuple_convertible<
           given_args_tuple_type,
           unit_args_tuple_type
         >::value,
@@ -103,7 +111,9 @@ namespace TaskDistribution {
 
     archive_.insert(task_key, task_entry);
 
-    return Task<typename function_traits<Unit>::return_type>(task_key, this);
+    return Task<
+      typename CompileUtils::function_traits<Unit>::return_type>(task_key,
+          this);
   }
 
   template <class T>

@@ -40,13 +40,14 @@
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 
+#include "function_traits.hpp"
 #include "object_archive.hpp"
+#include "sequence.hpp"
 
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
 
-#include "compile_utils.hpp"
 #include "computing_unit_manager.hpp"
 #include "key.hpp"
 #include "task_entry.hpp"
@@ -101,8 +102,8 @@ namespace TaskDistribution {
     protected:
       // Expands the tuple and calls the functor
       template <class F, class Tuple, size_t... S>
-      static typename function_traits<F>::return_type
-      apply(F&& f, Tuple&& args, seq<S...>) {
+      static typename CompileUtils::function_traits<F>::return_type
+      apply(F&& f, Tuple&& args, CompileUtils::sequence<S...>) {
         return std::forward<F>(f)(std::get<S>(std::forward<Tuple>(args))...);
       }
 

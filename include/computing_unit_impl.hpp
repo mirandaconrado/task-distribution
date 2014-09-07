@@ -1,6 +1,9 @@
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_IMPL_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_IMPL_HPP__
 
+#include "clean_tuple.hpp"
+#include "repeated_tuple.hpp"
+
 #include "computing_unit.hpp"
 
 #include "tuple_serialize.hpp"
@@ -74,22 +77,25 @@ namespace TaskDistribution {
       archive.load(task.computing_unit_key, obj);
 
     // Loads arguments
-    typename function_traits<T>::arg_tuple_type args;
+    typename CompileUtils::clean_tuple_from_tuple<
+      typename CompileUtils::function_traits<T>::arg_tuple_type>::type args;
     if (task.arguments_key.is_valid())
       archive.load(task.arguments_key, args);
 
     // Loads tasks arguments
     if (task.arguments_tasks_key.is_valid()) {
-      typename repeated_tuple<std::tuple_size<decltype(args)>::value,
-               Key>::type tasks_tuple;
+      typename CompileUtils::repeated_tuple<
+        std::tuple_size<decltype(args)>::value, Key>::type tasks_tuple;
       archive.load(task.arguments_tasks_key, tasks_tuple);
 
       load_tasks_arguments(args, tasks_tuple, archive, manager);
     }
 
     // Performs the computation
-    typename function_traits<T>::return_type res(
-      apply(obj, args, typename gens<function_traits<T>::arity>::type()));
+    typename CompileUtils::function_traits<T>::return_type res(
+      apply(obj, args,
+        typename CompileUtils::sequence_generator<
+        CompileUtils::function_traits<T>::arity>::type()));
 
     // Stores result, even if result_key.is_valid() == false
     archive.insert(task.result_key, res);
