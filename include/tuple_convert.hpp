@@ -1,28 +1,25 @@
 #ifndef __TASK_DISTRIBUTION__TUPLE_CONVERT__HPP__
 #define __TASK_DISTRIBUTION__TUPLE_CONVERT__HPP__
 
+#include "is_tuple_convertible.hpp"
+#include "sequence.hpp"
+
 #include <tuple>
 #include <type_traits>
 
 namespace TaskDistribution {
-  template <std::size_t I, class T1, class T2>
-  typename std::enable_if<(I == std::tuple_size<T1>::value ||
-                           I == std::tuple_size<T2>::value), void>::type
-  tuple_convert_detail(T1&, T2 const&) { }
-
-  template <std::size_t I, class T1, class T2>
-  typename std::enable_if<(I < std::tuple_size<T1>::value &&
-                           I < std::tuple_size<T2>::value), void>::type
-  tuple_convert_detail(T1& t1, T2 const& t2) {
-    std::get<I>(t1) = std::get<I>(t2);
-    tuple_convert_detail<I + 1>(t1, t2);
+  template <class T1, class T2, size_t... S>
+  void tuple_convert_detail(T1& t1, T2 const& t2,
+      CompileUtils::sequence<S...>) {
+    t1 = T1(std::get<S>(t2)...);
   }
 
   template <class T1, class T2>
-  typename std::enable_if<std::tuple_size<T1>::value ==
-                          std::tuple_size<T2>::value, void>::type
+  typename std::enable_if< CompileUtils::is_tuple_convertible<T1,T2>::value,
+           void>::type
   tuple_convert(T1& t1, T2 const& t2) {
-    tuple_convert_detail<0>(t1,t2);
+    tuple_convert_detail(t1, t2,
+        CompileUtils::tuple_sequence_generator<T1>::type());
   }
 };
 
