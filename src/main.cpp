@@ -15,7 +15,7 @@ class Fibonacci:
     Fibonacci(): ComputingUnit<Fibonacci>("fibonacci") {}
 
     virtual bool run_locally() const {
-      return true;
+      return false;
     }
 
     virtual bool should_save() const {
@@ -23,6 +23,7 @@ class Fibonacci:
     }
 
     int operator()(int v1, int v2) const {
+      printf("%d\n", world.rank());
       return v1 + v2;
     }
 };

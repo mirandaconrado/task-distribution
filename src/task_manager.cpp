@@ -143,18 +143,27 @@ namespace TaskDistribution {
   }
 
   bool TaskManager::send_next_task(int slave) {
-    if (ready_.empty())
-      return false;
-
-    Key task_key = ready_.front();
-    ready_.pop_front();
+    bool got_task_for_remote = false;
+    Key task_key;
     TaskEntry entry;
 
-    // If we already computed this task, gets the next one
-    if (entry.result_key.is_valid())
-      return send_next_task(slave);
+    while (!got_task_for_remote) {
+      if (ready_.empty())
+        return false;
 
-    archive_.load(task_key, entry);
+      task_key = ready_.front();
+      ready_.pop_front();
+
+      archive_.load(task_key, entry);
+
+      // If we already computed this task, gets the next one
+      if (!entry.result_key.is_valid()) {
+        if (entry.run_locally)
+          unit_manager_.process_local(entry);
+        else
+          got_task_for_remote = true;
+      }
+    }
 
     unit_manager_.send_remote(entry, slave);
     return true;
