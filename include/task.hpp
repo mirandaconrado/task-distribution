@@ -27,10 +27,8 @@
 namespace TaskDistribution {
   class TaskManager;
 
-  class BaseTask { };
-
   template <class T>
-  class Task: BaseTask {
+  class Task {
     public:
       Task(): task_manager_(nullptr) { }
 

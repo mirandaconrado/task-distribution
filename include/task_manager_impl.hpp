@@ -16,36 +16,6 @@
 #include <type_traits>
 
 namespace TaskDistribution {
-  template <class T>
-  T TaskManager::get_value(T const& arg) {
-    return arg;
-  }
-
-  template <class T>
-  T TaskManager::get_value(Task<T> const& arg) {
-    return T();
-  }
-
-  template <class T>
-  Key TaskManager::get_task_key(T const& arg) {
-    return Key();
-  }
-
-  template <class T>
-  Key TaskManager::get_task_key(Task<T> const& arg) {
-    return arg.task_key_;
-  }
-
-  template <class Tuple, class... Args>
-  Tuple TaskManager::make_args_tuple(Args const&... args) {
-    return Tuple(get_value(args)...);
-  }
-
-  template <class Tuple, class... Args>
-  Tuple TaskManager::make_args_tasks_tuple(Args const&... args) {
-    return Tuple(get_task_key(args)...);
-  }
-
   template <class Unit, class... Args>
   Task<typename CompileUtils::function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
@@ -76,15 +46,9 @@ namespace TaskDistribution {
         "Can't convert from arguments provided to expected."
     );
 
-    std::tuple<Args const&...> given_args_tuple(args...);
-
     // Make tuples of normal arguments and task arguments
-    //unit_args_tuple_type args_tuple(
-    //    make_args_tuple<unit_args_tuple_type>(args...));
     unit_args_tuple_type args_tuple(
         make_args_tuple<unit_args_tuple_type>(args...));
-    //args_tasks_tuple_type args_tasks_tuple(
-    //    make_args_tasks_tuple<args_tasks_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(
         make_args_tasks_tuple<args_tasks_tuple_type>(args...));
 
@@ -114,8 +78,6 @@ namespace TaskDistribution {
 
     // Creates children and parents if they don't exist
     create_family_lists(task_entry);
-
-    //archive_.insert(task_key, task_entry);
 
     // Do dependency analysis
     DependencyAnalyzer da;
@@ -190,6 +152,36 @@ namespace TaskDistribution {
 
     if (!entry.result_key.is_valid())
       archive_.remove(entry.result_key);
+  }
+
+  template <class T>
+  T TaskManager::get_value(T const& arg) {
+    return arg;
+  }
+
+  template <class T>
+  T TaskManager::get_value(Task<T> const& arg) {
+    return T();
+  }
+
+  template <class T>
+  Key TaskManager::get_task_key(T const& arg) {
+    return Key();
+  }
+
+  template <class T>
+  Key TaskManager::get_task_key(Task<T> const& arg) {
+    return arg.task_key_;
+  }
+
+  template <class Tuple, class... Args>
+  Tuple TaskManager::make_args_tuple(Args const&... args) {
+    return Tuple(get_value(args)...);
+  }
+
+  template <class Tuple, class... Args>
+  Tuple TaskManager::make_args_tasks_tuple(Args const&... args) {
+    return Tuple(get_task_key(args)...);
   }
 };
 

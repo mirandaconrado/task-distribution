@@ -2,7 +2,6 @@
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
 #include "function_traits.hpp"
-#include "sequence.hpp"
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #include "mpi_object_archive.hpp"
@@ -156,21 +155,28 @@ namespace TaskDistribution {
       ComputingUnitManager unit_manager_;
 
       // Auxiliary methods to build argument tuples tuples.
+
+      // Returns the given argument.
       template <class T>
       static T get_value(T const& arg);
 
+      // Returns an empty value T.
       template <class T>
       static T get_value(Task<T> const& arg);
 
+      // Returns an empty key.
       template <class T>
       static Key get_task_key(T const& arg);
 
+      // Returns the task key.
       template <class T>
       static Key get_task_key(Task<T> const& arg);
 
+      // Builds the tuple with only the value of arguments that aren't tasks.
       template <class Tuple, class... Args>
       static Tuple make_args_tuple(Args const&... args);
 
+      // Builds the tuple with only the keys to tasks arguments.
       template <class Tuple, class... Args>
       static Tuple make_args_tasks_tuple(Args const&... args);
   };
