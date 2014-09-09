@@ -2,6 +2,7 @@
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
 #include "function_traits.hpp"
+#include "sequence.hpp"
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
 #include "mpi_object_archive.hpp"
@@ -154,112 +155,20 @@ namespace TaskDistribution {
       KeyList ready_;
       ComputingUnitManager unit_manager_;
 
-      // Auxiliary methods to build tuples.
-      template <size_t I, class Tuple, class T1>
-      static auto make_args_tuple_detail(T1 const& arg1) ->
-      typename std::enable_if<(I == std::tuple_size<Tuple>::value-1),
-               std::tuple<typename std::tuple_element<I,Tuple>::type>>::type
-      {
-        return std::tuple<typename std::tuple_element<I,Tuple>::type>(arg1);
-      }
+      // Auxiliary methods to build argument tuples tuples.
+      template <class T>
+      static Key get_task_key(T const& arg);
 
-      template <size_t I, class Tuple, class T1>
-      static auto make_args_tuple_detail(Task<T1> const& arg1) ->
-      typename std::enable_if<(I == std::tuple_size<Tuple>::value-1),
-               std::tuple<typename std::tuple_element<I,Tuple>::type>>::type
-      {
-        return std::tuple<typename std::tuple_element<I,Tuple>::type>();
-      }
+      template <class T>
+      static Key get_task_key(Task<T> const& arg);
 
-      template <size_t I, class Tuple, class T1, class... Types>
-      static auto make_args_tuple_detail(T1 const& arg1, Types const&... args) ->
-      typename std::enable_if<(I < std::tuple_size<Tuple>::value-1),
-        decltype(
-            std::tuple_cat(
-              std::tuple<typename std::tuple_element<I,Tuple>::type>(arg1),
-              make_args_tuple_detail<I+1,Tuple>(args...)
-            )
-        )>::type
-      {
-        return std::tuple_cat(
-            std::tuple<typename std::tuple_element<I,Tuple>::type>(arg1),
-            make_args_tuple_detail<I+1,Tuple>(args...)
-        );
-      }
+      template <class T1, class T2, size_t... S>
+      static T1 make_args_tuple(T2 const& tuple, CompileUtils::sequence<S...>);
 
-      template <size_t I, class Tuple, class T1, class... Types>
-      static auto make_args_tuple_detail(Task<T1> const& arg1, Types const&... args) ->
-      typename std::enable_if<(I < std::tuple_size<Tuple>::value-1),
-        decltype(
-            std::tuple_cat(
-              std::tuple<typename std::tuple_element<I,Tuple>::type>(),
-              make_args_tuple_detail<I+1,Tuple>(args...)
-            )
-        )>::type
-      {
-        return std::tuple_cat(
-            std::tuple<typename std::tuple_element<I,Tuple>::type>(),
-            make_args_tuple_detail<I+1,Tuple>(args...)
-        );
-      }
-
-      template <class Tuple, class... Types>
-      static Tuple make_args_tuple(Types const&... args) {
-        return make_args_tuple_detail<0, Tuple>(args...);
-      }
-
-      template <size_t I, class Tuple, class T1>
-      static auto make_args_tasks_tuple_detail(T1 const& arg1) ->
-      typename std::enable_if<(I == std::tuple_size<Tuple>::value-1),
-               std::tuple<Key>>::type
-      {
-        return std::tuple<Key>();
-      }
-
-      template <size_t I, class Tuple, class T1>
-      static auto make_args_tasks_tuple_detail(Task<T1> const& arg1) ->
-      typename std::enable_if<(I == std::tuple_size<Tuple>::value-1),
-               std::tuple<Key>>::type
-      {
-        return std::tuple<Key>(arg1.task_key_);
-      }
-
-      template <size_t I, class Tuple, class T1, class... Types>
-      static auto make_args_tasks_tuple_detail(T1 const& arg1, Types const&... args) ->
-      typename std::enable_if<(I < std::tuple_size<Tuple>::value-1),
-        decltype(
-            std::tuple_cat(
-              std::tuple<Key>(),
-              make_args_tasks_tuple_detail<I+1,Tuple>(args...)
-            )
-        )>::type
-      {
-        return std::tuple_cat(
-            std::tuple<Key>(),
-            make_args_tasks_tuple_detail<I+1,Tuple>(args...)
-        );
-      }
-
-      template <size_t I, class Tuple, class T1, class... Types>
-      static auto make_args_tasks_tuple_detail(Task<T1> const& arg1, Types const&... args) ->
-      typename std::enable_if<(I < std::tuple_size<Tuple>::value-1),
-        decltype(
-            std::tuple_cat(
-              std::tuple<Key>(arg1.task_key_),
-              make_args_tasks_tuple_detail<I+1,Tuple>(args...)
-            )
-        )>::type
-      {
-        return std::tuple_cat(
-            std::tuple<Key>(arg1.task_key_),
-            make_args_tasks_tuple_detail<I+1,Tuple>(args...)
-        );
-      }
-
-      template <class Tuple, class... Types>
-      static Tuple make_args_tasks_tuple(Types const&... args) {
-        return make_args_tasks_tuple_detail<0, Tuple>(args...);
-      }
+      // TODO: remove tuple argument
+      template <class T1, class T2, size_t... S>
+      static T1 make_args_tasks_tuple(T2 const& tuple,
+          CompileUtils::sequence<S...>);
   };
 };
 

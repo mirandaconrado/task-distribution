@@ -13,8 +13,38 @@
 
 #include <boost/serialization/set.hpp>
 #include <functional>
+#include <type_traits>
 
 namespace TaskDistribution {
+  template <class T>
+  Key TaskManager::get_task_key(T const& arg) {
+    return Key();
+  }
+
+  template <class T>
+  Key TaskManager::get_task_key(Task<T> const& arg) {
+    return arg.task_key_;
+  }
+
+  template <class T1, class T2, size_t... S>
+  T1 TaskManager::make_args_tuple(T2 const& tuple,
+      CompileUtils::sequence<S...>) {
+    return T1(
+        (std::is_base_of<BaseTask,
+                         typename std::tuple_element<S,T2>::type
+                        >::value
+         ?
+         typename std::tuple_element<S,T1>::type()
+         :
+         std::get<S>(tuple))...);
+  }
+
+  // TODO: remove tuple argument
+  template <class T1, class T2, size_t... S>
+  T1 TaskManager::make_args_tasks_tuple(T2 const& tuple,
+      CompileUtils::sequence<S...>) {
+    return T1(get_task_key(std::get<S>(tuple))...);
+  }
 
   template <class Unit, class... Args>
   Task<typename CompileUtils::function_traits<Unit>::return_type>
@@ -46,11 +76,19 @@ namespace TaskDistribution {
         "Can't convert from arguments provided to expected."
     );
 
+    std::tuple<Args const&...> given_args_tuple(args...);
+
     // Make tuples of normal arguments and task arguments
+    //unit_args_tuple_type args_tuple(
+    //    make_args_tuple<unit_args_tuple_type>(args...));
     unit_args_tuple_type args_tuple(
-        make_args_tuple<unit_args_tuple_type>(args...));
+        make_args_tuple<unit_args_tuple_type>(given_args_tuple,
+          typename CompileUtils::tuple_sequence_generator<unit_args_tuple_type>::type()));
+    //args_tasks_tuple_type args_tasks_tuple(
+    //    make_args_tasks_tuple<args_tasks_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(
-        make_args_tasks_tuple<args_tasks_tuple_type>(args...));
+        make_args_tasks_tuple<args_tasks_tuple_type>(given_args_tuple,
+          typename CompileUtils::tuple_sequence_generator<args_tasks_tuple_type>::type()));
 
     // Gets keys
     Key computing_unit_key = get_key(computing_unit,
