@@ -9,11 +9,6 @@
 #else
 #include "object_archive.hpp"
 #endif
-//#include <fstream>
-//#include <unordered_map>
-//#include <unordered_set>
-
-//#include <boost/predef.h>
 
 #include "computing_unit_manager.hpp"
 #include "key.hpp"
@@ -73,56 +68,43 @@ namespace TaskDistribution {
 
       //-- End Archive mappings --
 
+      // Creates a task for the unit and arguments provided.
       template <class Unit, class... Args>
       Task<typename CompileUtils::function_traits<Unit>::return_type>
       new_task(Unit const& computing_unit, Args const&... args);
 
+      // Creates a task that just gives back its argument. This should be used
+      // with big arguments, as it avoids them being serialized many times,
+      // which can be expensive.
       template <class T>
       Task<T> new_identity_task(T const& arg);
 
+      // If the argument is a task already, just give it back.
       template <class T>
       Task<T> new_identity_task(Task<T> const& arg);
 
-      /*template <class To, class From>
-      Task<To> new_conversion_task(From&& arg);*/
-
-      //void add_free_task(BaseTask* task);
-
-      // Proxy to either local or MPI task processing
+      // Proxy to either local or MPI task processing.
       void run();
 
-      /*BaseTask* get(size_t hash) const;
-
-      void insert(size_t hash, std::string name, BaseTask* task);
-
-      template <class T> void save(BaseTask* task, T const& val);
-
-      template <class T> bool load(BaseTask* task, T& val);
-
-      bool check(BaseTask* task) const;*/
-
-      //size_t id() const;
-
-      /*void print_status();
-
-      void invalidate(std::string name);
-
-      void invalidate(BaseTask* task);
-
-      void clean();
-
-      void unload(BaseTask* task);*/
+      // Id of this manager, which is its rank with MPI or 0 otherwise.
+      size_t id() const;
 
     private:
 #if ENABLE_MPI
-      void run_manager();
+      // Runs the manager that allocates tasks.
+      void run_master();
 
-      void run_others();
+      // Runs the slaves that just compute stuff.
+      void run_slave();
 
+      // Sends the next ready task to a given slave. Returns true if a task was
+      // allocated.
       bool send_next_task(int slave);
 
+      // Handler to MPI tag.
       bool process_finish(int source, int tag);
 
+      // Sends a finish tag to all other nodes.
       void broadcast_finish();
 #endif
 
@@ -138,32 +120,20 @@ namespace TaskDistribution {
       template <class T>
       Key get_key(T const& data, Key::Type type);
 
-      // Creates a new key of a given type
+      // Creates a new key of a given type.
       Key new_key(Key::Type type);
 
-      // Creates children and parents if they are invalid
+      // Creates children and parents if they are invalid.
       void create_family_lists(TaskEntry& entry);
 
-      // Creates the bilateral link between child and parent task
+      // Creates the bilateral link between child and parent task.
       void add_dependency(TaskEntry& child_entry, Key const& parent_key,
           KeySet& parents);
 
+      // Gets the result for a given task.
       template <class> friend class Task;
       template <class T>
       void get_result(Key const& task_key, T& ret);
-
-      /*void check_if_ready(ArchiveKey const& task_key);
-
-      ArchiveKey new_object_key();
-
-      ArchiveKey get_task(std::string const& unit_key,
-          std::string const& args_key,
-          std::string const& unit_str,
-          std::string const& args_str);
-
-      ArchiveKey get_component(std::string const& map_key,
-          std::string const& str,
-          std::unordered_multimap<std::string, ArchiveKey>& map);*/
 
 #if ENABLE_MPI
       Tags tags_;
@@ -175,28 +145,14 @@ namespace TaskDistribution {
       ObjectArchive<Key> archive_;
 #endif
 
-      /*size_t next_free_obj_id_;*/
-
-
+      // Maps object hashes to their keys, to avoid duplicated objects. If
+      // there's a hash collision, the key will give the wrong object.
       std::unordered_map<size_t, Key> map_hash_to_key_;
       std::unordered_map<Key, KeySet> map_task_to_parents_,
         map_task_to_children_;
-      std::list<Key> ready_;
+      // List of tasks that are ready to compute.
+      KeyList ready_;
       ComputingUnitManager unit_manager_;
-      //std::unordered_multimap<std::string, ArchiveKey> map_typenames_to_tasks_;
-      //std::unordered_multimap<std::string, ArchiveKey> map_arg_names_to_args_;
-
-      //std::unordered_set<ArchiveKey> tasks_ready_to_run_;
-
-      /*std::unordered_map<size_t,BaseTask*> hash_map_;
-
-      std::map<std::string,std::list<size_t>> name_map_;
-
-      std::map<std::string,std::pair<size_t,size_t>> count_map_;
-
-      std::list<BaseTask*> free_;*/
-
-      /*time_t last_print_;*/
 
       // Auxiliary methods to build tuples.
       template <size_t I, class Tuple, class T1>

@@ -1,3 +1,9 @@
+// Tasks may depend on other tasks, which is reflected by their argument tuples.
+// This file defines an auxiliary structure to get these dependencies.
+//
+// The class just iterates over the tuple of keys and, if a valid key is found,
+// add as a dependency.
+
 #ifndef __TASK_DISTRIBUTION__DEPENDENCY_ANALYZER__HPP__
 #define __TASK_DISTRIBUTION__DEPENDENCY_ANALYZER__HPP__
 
@@ -8,11 +14,11 @@
 #include "task.hpp"
 
 namespace TaskDistribution {
-  template <std::size_t I, class Tuple, class Analyzer>
+  template <size_t I, class Tuple, class Analyzer>
   typename std::enable_if<(I == std::tuple_size<Tuple>::value), void>::type
   tuple_analyze_detail(Tuple const&, Analyzer&) { }
 
-  template <std::size_t I, class Tuple, class Analyzer>
+  template <size_t I, class Tuple, class Analyzer>
   typename std::enable_if<(I < std::tuple_size<Tuple>::value), void>::type
   tuple_analyze_detail(Tuple const& t, Analyzer& a) {
     Key const& key = std::get<I>(t);

@@ -1,4 +1,4 @@
-// Everything is stores in an ObjectArchive and must use the same key. This file
+// Everything is stored in an ObjectArchive and must use the same key. This file
 // defines the key.
 //
 // Each key is composed on the node that created it (0 if MPI is disabled) and a

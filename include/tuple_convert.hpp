@@ -1,3 +1,6 @@
+// If each time of a tuple can be converted to its associated type in another
+// tuple, performs this conversion.
+
 #ifndef __TASK_DISTRIBUTION__TUPLE_CONVERT__HPP__
 #define __TASK_DISTRIBUTION__TUPLE_CONVERT__HPP__
 
@@ -15,7 +18,7 @@ namespace TaskDistribution {
   }
 
   template <class T1, class T2>
-  typename std::enable_if< CompileUtils::is_tuple_convertible<T1,T2>::value,
+  typename std::enable_if<CompileUtils::is_tuple_convertible<T1,T2>::value,
            void>::type
   tuple_convert(T1& t1, T2 const& t2) {
     tuple_convert_detail(t1, t2,

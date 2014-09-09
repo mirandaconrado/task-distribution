@@ -1,3 +1,5 @@
+// Provides the mechanism to serialize a tuple.
+
 #ifndef __TASK_DISTRIBUTION__TUPLE_SERIALIZE_HPP__
 #define __TASK_DISTRIBUTION__TUPLE_SERIALIZE_HPP__
 

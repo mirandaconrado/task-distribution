@@ -24,13 +24,13 @@ namespace TaskDistribution {
     id_ = &id_map_.find(name)->first;
   }
 
-  template <std::size_t I, class T1, class T2>
+  template <size_t I, class T1, class T2>
   typename std::enable_if<(I == std::tuple_size<T1>::value ||
                            I == std::tuple_size<T2>::value), void>::type
   load_tasks_arguments_detail(T1&, T2 const&, ObjectArchive<Key>&,
       ComputingUnitManager&) { }
 
-  template <std::size_t I, class T1, class T2>
+  template <size_t I, class T1, class T2>
   typename std::enable_if<(I < std::tuple_size<T1>::value &&
                            I < std::tuple_size<T2>::value), void>::type
   load_tasks_arguments_detail(T1& t1, T2 const& t2,
@@ -97,7 +97,8 @@ namespace TaskDistribution {
         typename CompileUtils::sequence_generator<
         CompileUtils::function_traits<T>::arity>::type()));
 
-    // Stores result, even if result_key.is_valid() == false
+    // Stores result, even if result_key.is_valid() == false, as it will be used
+    // later
     archive.insert(task.result_key, res);
   }
 };

@@ -1,3 +1,24 @@
+// Each task is represented by a front-end given back to the user, which can be
+// used to access the result of the computation. This file defines this front
+// end.
+//
+// The only thing the user has access is to the type of result provided by the
+// computing unit used to create the task, as it identifies which time it can be
+// converted.
+//
+// The usual method to access the result is just to cast the task, like:
+// Task<int> t = ...;
+// int bar = ...;
+// int foo = t + bar;
+//
+// This automatically coerces the task to its type. If the result hasn't been
+// computed yet (maybe because the task manager hasn't run), it is computed
+// locally at the time of coercion.
+//
+// The operator() is provided and behaves like coercing, but some functions,
+// like printf, will give error because they don't explicit allows type
+// conversion.
+
 #ifndef __TASK_DISTRIBUTION__TASK_HPP__
 #define __TASK_DISTRIBUTION__TASK_HPP__
 
@@ -22,7 +43,7 @@ namespace TaskDistribution {
         return *this;
       }
 
-      // Can't use operator== as it may force type conversion
+      // Can't use operator== as it may force type coercion
       bool is_same_task(Task<T> const& other) const {
         return task_key_ == other.task_key_ &&
                task_manager_ == other.task_manager_;

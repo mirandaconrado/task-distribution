@@ -129,7 +129,7 @@ namespace TaskDistribution {
   template <class T>
   Key TaskManager::get_key(T const& data, Key::Type type) {
     std::string data_str = ObjectArchive<Key>::serialize(data);
-    // If collision happens, we are screwed.
+    // If collision happens, we are screwed. TODO: use better hash
     std::hash<std::string> hasher;
     size_t hash = hasher(data_str);
     auto it = map_hash_to_key_.find(hash);

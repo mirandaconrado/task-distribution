@@ -17,15 +17,15 @@
 namespace TaskDistribution {
   // Archive entry for a task, having all values required work with it.
   struct TaskEntry {
-    Key task_key;
-    Key computing_unit_key;
-    Key arguments_key;
-    Key arguments_tasks_key;
-    Key result_key;
-    Key computing_unit_id_key;
-    Key parents_key;
-    Key children_key;
-    size_t active_parents;
+    Key task_key;              // Key to this entry
+    Key computing_unit_key;    // Key to the computing unit
+    Key arguments_key;         // Key to the tuple of arguments
+    Key arguments_tasks_key;   // Key to the tuple of tasks as arguments
+    Key result_key;            // Key to the result
+    Key computing_unit_id_key; // Key to the unit id
+    Key parents_key;           // Key to a list of keys of parent tasks
+    Key children_key;          // Key to a list of keys of children tasks
+    size_t active_parents;     // Number of parents that have to be computed
     bool should_save, run_locally;
 
     TaskEntry():

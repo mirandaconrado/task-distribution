@@ -74,6 +74,7 @@ namespace TaskDistribution {
 
     private:
 #if ENABLE_MPI
+      // Handlers for MPI tags
       bool process_task_begin(int source, int tag);
       bool process_task_end(int source, int tag);
 
@@ -81,7 +82,9 @@ namespace TaskDistribution {
       MPIHandler& handler_;
       Tags tags_;
       MPIObjectArchive<Key>& archive_;
+      // List of tasks that have ended by remotes
       TasksList tasks_ended_;
+      // List of tasks that a remote requested to be executed by this manager
       std::list<std::pair<TaskEntry,int>> tasks_requested_;
 #else
       ObjectArchive<Key>& archive_;
