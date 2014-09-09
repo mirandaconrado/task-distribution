@@ -17,6 +17,16 @@
 
 namespace TaskDistribution {
   template <class T>
+  T TaskManager::get_value(T const& arg) {
+    return arg;
+  }
+
+  template <class T>
+  T TaskManager::get_value(Task<T> const& arg) {
+    return T();
+  }
+
+  template <class T>
   Key TaskManager::get_task_key(T const& arg) {
     return Key();
   }
@@ -26,20 +36,11 @@ namespace TaskDistribution {
     return arg.task_key_;
   }
 
-  template <class T1, class T2, size_t... S>
-  T1 TaskManager::make_args_tuple(T2 const& tuple,
-      CompileUtils::sequence<S...>) {
-    return T1(
-        (std::is_base_of<BaseTask,
-                         typename std::tuple_element<S,T2>::type
-                        >::value
-         ?
-         typename std::tuple_element<S,T1>::type()
-         :
-         std::get<S>(tuple))...);
+  template <class Tuple, class... Args>
+  Tuple TaskManager::make_args_tuple(Args const&... args) {
+    return Tuple(get_value(args)...);
   }
 
-  // TODO: remove tuple argument
   template <class Tuple, class... Args>
   Tuple TaskManager::make_args_tasks_tuple(Args const&... args) {
     return Tuple(get_task_key(args)...);
@@ -81,8 +82,7 @@ namespace TaskDistribution {
     //unit_args_tuple_type args_tuple(
     //    make_args_tuple<unit_args_tuple_type>(args...));
     unit_args_tuple_type args_tuple(
-        make_args_tuple<unit_args_tuple_type>(given_args_tuple,
-          typename CompileUtils::tuple_sequence_generator<unit_args_tuple_type>::type()));
+        make_args_tuple<unit_args_tuple_type>(args...));
     //args_tasks_tuple_type args_tasks_tuple(
     //    make_args_tasks_tuple<args_tasks_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(

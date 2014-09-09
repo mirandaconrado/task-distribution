@@ -157,15 +157,20 @@ namespace TaskDistribution {
 
       // Auxiliary methods to build argument tuples tuples.
       template <class T>
+      static T get_value(T const& arg);
+
+      template <class T>
+      static T get_value(Task<T> const& arg);
+
+      template <class T>
       static Key get_task_key(T const& arg);
 
       template <class T>
       static Key get_task_key(Task<T> const& arg);
 
-      template <class T1, class T2, size_t... S>
-      static T1 make_args_tuple(T2 const& tuple, CompileUtils::sequence<S...>);
+      template <class Tuple, class... Args>
+      static Tuple make_args_tuple(Args const&... args);
 
-      // TODO: remove tuple argument
       template <class Tuple, class... Args>
       static Tuple make_args_tasks_tuple(Args const&... args);
   };
