@@ -40,10 +40,9 @@ namespace TaskDistribution {
   }
 
   // TODO: remove tuple argument
-  template <class T1, class T2, size_t... S>
-  T1 TaskManager::make_args_tasks_tuple(T2 const& tuple,
-      CompileUtils::sequence<S...>) {
-    return T1(get_task_key(std::get<S>(tuple))...);
+  template <class Tuple, class... Args>
+  Tuple TaskManager::make_args_tasks_tuple(Args const&... args) {
+    return Tuple(get_task_key(args)...);
   }
 
   template <class Unit, class... Args>
@@ -87,8 +86,7 @@ namespace TaskDistribution {
     //args_tasks_tuple_type args_tasks_tuple(
     //    make_args_tasks_tuple<args_tasks_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(
-        make_args_tasks_tuple<args_tasks_tuple_type>(given_args_tuple,
-          typename CompileUtils::tuple_sequence_generator<args_tasks_tuple_type>::type()));
+        make_args_tasks_tuple<args_tasks_tuple_type>(args...));
 
     // Gets keys
     Key computing_unit_key = get_key(computing_unit,

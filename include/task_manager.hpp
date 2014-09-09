@@ -166,9 +166,8 @@ namespace TaskDistribution {
       static T1 make_args_tuple(T2 const& tuple, CompileUtils::sequence<S...>);
 
       // TODO: remove tuple argument
-      template <class T1, class T2, size_t... S>
-      static T1 make_args_tasks_tuple(T2 const& tuple,
-          CompileUtils::sequence<S...>);
+      template <class Tuple, class... Args>
+      static Tuple make_args_tasks_tuple(Args const&... args);
   };
 };
 
