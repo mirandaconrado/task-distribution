@@ -128,18 +128,23 @@ namespace TaskDistribution {
   template <class T>
   Key TaskManager::get_key(T const& data, Key::Type type) {
     std::string data_str = ObjectArchive<Key>::serialize(data);
-    // If collision happens, we are screwed. TODO: use better hash
     std::hash<std::string> hasher;
     size_t hash = hasher(data_str);
-    auto it = map_hash_to_key_.find(hash);
-    if (it == map_hash_to_key_.end()) {
-      Key key = new_key(type);
-      map_hash_to_key_.emplace(hash, key);
-      archive_.insert_raw(key, std::move(data_str));
-      return key;
+    auto range = map_hash_to_key_.equal_range(hash);
+
+    // Process found keys
+    for (auto it = range.first; it != range.second; ++it) {
+      std::string other_data_str;
+      archive_.load_raw(it->second, other_data_str);
+      if (data_str == other_data_str)
+          return it->second;
     }
 
-    return it->second;
+    // If no correct entry was found
+    Key key = new_key(type);
+    map_hash_to_key_.emplace(hash, key);
+    archive_.insert_raw(key, std::move(data_str));
+    return key;
   }
 
   template <class T>

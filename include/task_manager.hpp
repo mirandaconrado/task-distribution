@@ -163,13 +163,15 @@ namespace TaskDistribution {
       creation_handler_type task_creation_handler_;
       action_handler_type task_begin_handler_, task_end_handler_;
 
-      // Maps object hashes to their keys, to avoid duplicated objects. If
-      // there's a hash collision, the key will give the wrong object.
-      std::unordered_map<size_t, Key> map_hash_to_key_;
+      // Maps object hashes to their keys, to avoid duplicated objects.
+      std::unordered_multimap<size_t, Key> map_hash_to_key_;
+
       std::unordered_map<Key, KeySet> map_task_to_parents_,
         map_task_to_children_;
+
       // List of tasks that are ready to compute.
       KeyList ready_;
+
       ComputingUnitManager unit_manager_;
 
       // Auxiliary methods to build argument tuples tuples.
