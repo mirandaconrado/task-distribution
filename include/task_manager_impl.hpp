@@ -108,6 +108,8 @@ namespace TaskDistribution {
 
     archive_.insert(task_key, task_entry);
 
+    task_creation_handler_(computing_unit.get_id(), task_key);
+
     return Task<
       typename CompileUtils::function_traits<Unit>::return_type>(task_key,
           this);

@@ -19,6 +19,10 @@ namespace TaskDistribution {
       handler.insert(tags_.finish,
           std::bind(&TaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
+
+      clear_task_creation_handler();
+      clear_task_begin_handler();
+      clear_task_end_handler();
     }
 
   TaskManager::~TaskManager() {
@@ -121,13 +125,16 @@ namespace TaskDistribution {
 
       // If we already computed this task, gets the next one
       if (!entry.result_key.is_valid()) {
-        if (entry.run_locally)
+        if (entry.run_locally) {
+          task_begin_handler_(task_key);
           unit_manager_.process_local(entry);
+        }
         else
           got_task_for_remote = true;
       }
     }
 
+    task_begin_handler_(task_key);
     unit_manager_.send_remote(entry, slave);
     return true;
   }
@@ -150,6 +157,7 @@ namespace TaskDistribution {
       ready_.pop_front();
       TaskEntry entry;
       archive_.load(task_key, entry);
+      task_begin_handler_(task_key);
       unit_manager_.process_local(entry);
       task_completed(task_key);
     }
@@ -169,6 +177,7 @@ namespace TaskDistribution {
         }
       }
     }
+    task_end_handler_(task_key);
   }
 
   size_t TaskManager::id() const {
@@ -177,6 +186,30 @@ namespace TaskDistribution {
 #else
     return 0;
 #endif
+  }
+
+  void TaskManager::set_task_creation_handler(creation_handler_type handler) {
+    task_creation_handler_ = handler;
+  }
+
+  void TaskManager::clear_task_creation_handler() {
+    task_creation_handler_ = [](std::string const&, Key const&){};
+  }
+
+  void TaskManager::set_task_begin_handler(action_handler_type handler) {
+    task_begin_handler_ = handler;
+  }
+
+  void TaskManager::clear_task_begin_handler() {
+    task_begin_handler_ = [](Key const&){};
+  }
+
+  void TaskManager::set_task_end_handler(action_handler_type handler) {
+    task_end_handler_ = handler;
+  }
+
+  void TaskManager::clear_task_end_handler() {
+    task_end_handler_ = [](Key const&){};
   }
 
   Key TaskManager::new_key(Key::Type type) {

@@ -13,12 +13,18 @@
 #include "computing_unit_manager.hpp"
 #include "key.hpp"
 
+#include <functional>
+
 namespace TaskDistribution {
   template <class T> class Task;
   struct TaskEntry;
 
   class TaskManager {
     public:
+      typedef std::function<void (std::string const&, Key const&)>
+        creation_handler_type;
+      typedef std::function<void (Key const&)> action_handler_type;
+
 #if ENABLE_MPI
       struct Tags {
         int finish = 9;
@@ -89,6 +95,15 @@ namespace TaskDistribution {
       // Id of this manager, which is its rank with MPI or 0 otherwise.
       size_t id() const;
 
+      void set_task_creation_handler(creation_handler_type handler);
+      void clear_task_creation_handler();
+
+      void set_task_begin_handler(action_handler_type handler);
+      void clear_task_begin_handler();
+
+      void set_task_end_handler(action_handler_type handler);
+      void clear_task_end_handler();
+
     private:
 #if ENABLE_MPI
       // Runs the manager that allocates tasks.
@@ -144,6 +159,9 @@ namespace TaskDistribution {
 #else
       ObjectArchive<Key> archive_;
 #endif
+
+      creation_handler_type task_creation_handler_;
+      action_handler_type task_begin_handler_, task_end_handler_;
 
       // Maps object hashes to their keys, to avoid duplicated objects. If
       // there's a hash collision, the key will give the wrong object.
