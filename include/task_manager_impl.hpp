@@ -8,7 +8,6 @@
 #include "task_manager.hpp"
 
 #include "computing_unit.hpp"
-#include "dependency_analyzer.hpp"
 #include "task.hpp"
 
 #include <boost/serialization/set.hpp>
@@ -80,15 +79,15 @@ namespace TaskDistribution {
     create_family_lists(task_entry);
 
     // Do dependency analysis
-    DependencyAnalyzer da;
-    da.analyze(args_tasks_tuple);
+    KeyList dependencies({get_task_key(args)...});
 
     // Add dependencies
     KeySet parents;
     archive_.load(task_entry.parents_key, parents);
 
-    for (auto& parent_key: da.dependencies)
-      add_dependency(task_entry, parent_key, parents);
+    for (auto& parent_key: dependencies)
+      if (parent_key.is_valid())
+        add_dependency(task_entry, parent_key, parents);
 
     archive_.insert(task_entry.parents_key, parents);
 
