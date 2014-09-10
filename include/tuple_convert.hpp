@@ -11,18 +11,18 @@
 #include <type_traits>
 
 namespace TaskDistribution {
-  template <class T1, class T2, size_t... S>
-  void tuple_convert_detail(T1& t1, T2 const& t2,
+  template <class To, class From, size_t... S>
+  void tuple_convert_detail(To& to, From const& from,
       CompileUtils::sequence<S...>) {
-    t1 = T1(std::get<S>(t2)...);
+    to = To(std::get<S>(from)...);
   }
 
-  template <class T1, class T2>
-  typename std::enable_if<CompileUtils::is_tuple_convertible<T1,T2>::value,
+  template <class To, class From>
+  typename std::enable_if<CompileUtils::is_tuple_convertible<To,From>::value,
            void>::type
-  tuple_convert(T1& t1, T2 const& t2) {
-    tuple_convert_detail(t1, t2,
-        CompileUtils::tuple_sequence_generator<T1>::type());
+  tuple_convert(To& to, From const& from) {
+    tuple_convert_detail(to, from,
+        CompileUtils::tuple_sequence_generator<To>::type());
   }
 };
 

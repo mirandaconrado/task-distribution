@@ -24,18 +24,18 @@ namespace TaskDistribution {
     id_ = &id_map_.find(name)->first;
   }
 
-  template <size_t I, class T1, class T2>
-  typename std::enable_if<(I == std::tuple_size<T1>::value ||
-                           I == std::tuple_size<T2>::value), void>::type
-  load_tasks_arguments_detail(T1&, T2 const&, ObjectArchive<Key>&,
+  template <size_t I, class To, class From>
+  typename std::enable_if<(I == std::tuple_size<To>::value ||
+                           I == std::tuple_size<From>::value), void>::type
+  load_tasks_arguments_detail(To&, From const&, ObjectArchive<Key>&,
       ComputingUnitManager&) { }
 
-  template <size_t I, class T1, class T2>
-  typename std::enable_if<(I < std::tuple_size<T1>::value &&
-                           I < std::tuple_size<T2>::value), void>::type
-  load_tasks_arguments_detail(T1& t1, T2 const& t2,
+  template <size_t I, class To, class From>
+  typename std::enable_if<(I < std::tuple_size<To>::value &&
+                           I < std::tuple_size<From>::value), void>::type
+  load_tasks_arguments_detail(To& to, From const& from,
       ObjectArchive<Key>& archive, ComputingUnitManager& manager) {
-    Key const& task_key = std::get<I>(t2);
+    Key const& task_key = std::get<I>(from);
     if (task_key.is_valid()) {
       TaskEntry entry;
       archive.load(task_key, entry);
@@ -47,25 +47,25 @@ namespace TaskDistribution {
 
       // Loads result even is key is invalid, as it contains the temporary
       // result
-      typename std::tuple_element<I, T1>::type result;
+      typename std::tuple_element<I, To>::type result;
       archive.load(entry.result_key, result);
 
       // Removes the result if it was used only temporarily
       if (!entry.should_save || !entry.result_key.is_valid())
         archive.remove(entry.result_key);
 
-      std::get<I>(t1) = result;
+      std::get<I>(to) = result;
     }
 
-    load_tasks_arguments_detail<I + 1>(t1, t2, archive, manager);
+    load_tasks_arguments_detail<I + 1>(to, from, archive, manager);
   }
 
-  template <class T1, class T2>
-  typename std::enable_if<std::tuple_size<T1>::value ==
-                          std::tuple_size<T2>::value, void>::type
-  load_tasks_arguments(T1& t1, T2 const& t2,
+  template <class To, class From>
+  typename std::enable_if<std::tuple_size<To>::value ==
+                          std::tuple_size<From>::value, void>::type
+  load_tasks_arguments(To& to, From const& from,
       ObjectArchive<Key>& archive, ComputingUnitManager& manager) {
-    load_tasks_arguments_detail<0>(t1,t2,archive, manager);
+    load_tasks_arguments_detail<0>(to, from, archive, manager);
   }
 
   template <class T>
