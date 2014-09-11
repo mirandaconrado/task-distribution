@@ -240,8 +240,7 @@ namespace TaskDistribution {
     KeySet children;
     archive_.load(parent_entry.children_key, children);
 
-    // Creates bidirectional maps
-    map_task_to_parents_[child_entry.task_key].insert(parent_key);
+    // Creates map used to check if tasks are ready to run
     map_task_to_children_[parent_key].insert(child_entry.task_key);
 
     // Only add as active if it's a new parent

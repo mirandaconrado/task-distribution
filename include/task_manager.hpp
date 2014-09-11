@@ -166,8 +166,9 @@ namespace TaskDistribution {
       // Maps object hashes to their keys, to avoid duplicated objects.
       std::unordered_multimap<size_t, Key> map_hash_to_key_;
 
-      std::unordered_map<Key, KeySet> map_task_to_parents_,
-        map_task_to_children_;
+      // Maps tasks to their children. This is store in the archive, but a copy
+      // is kept here for faster dependency analysis.
+      std::unordered_map<Key, KeySet> map_task_to_children_;
 
       // List of tasks that are ready to compute.
       KeyList ready_;
