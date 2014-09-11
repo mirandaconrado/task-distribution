@@ -30,49 +30,15 @@ namespace TaskDistribution {
         int finish = 9;
       };
 
-      TaskManager(boost::mpi::communicator& world, MPIHandler& handler);
+      TaskManager(boost::mpi::communicator& world, MPIHandler& handler,
+          MPIObjectArchive<Key>& archive);
       TaskManager(Tags const& tags, boost::mpi::communicator& world,
-          MPIHandler& handler);
+          MPIHandler& handler, MPIObjectArchive<Key>& archive);
 #else
-      TaskManager();
+      TaskManager(ObjectArchive<Key>& archive);
 #endif
 
       ~TaskManager();
-
-      //-- Begin Archive mappings --
-
-      // Initializes the archive using a temporary file as backend. As the names
-      // are random, it's possible to have a collision!
-      void init() {
-        archive_.init();
-      }
-
-      // Initializes the archive using a new file as backend.
-      void init(std::string const& filename) {
-        archive_.init(filename);
-      }
-
-      // Resets the buffer size to a certain number of bytes.
-      void set_buffer_size(size_t max_buffer_size) {
-        archive_.set_buffer_size(max_buffer_size);
-      }
-
-      // Same as the other, but the string holds the number of bytes for the
-      // buffer, possibly with modifiers K, M or G. If more than one modifier is
-      // found, then the first one is used.
-      void set_buffer_size(std::string const& max_buffer_size) {
-        archive_.set_buffer_size(max_buffer_size);
-      }
-
-#if BOOST_OS_LINUX
-      // Sets the buffer size to a percentage of the FREE memory available in
-      // the system. Currently only Linux is supported.
-      void set_buffer_size_scale(float max_buffer_size) {
-        archive_.set_buffer_size_scale(max_buffer_size);
-      }
-#endif
-
-      //-- End Archive mappings --
 
       // Creates a task for the unit and arguments provided.
       template <class Unit, class... Args>
@@ -154,10 +120,10 @@ namespace TaskDistribution {
       Tags tags_;
       boost::mpi::communicator& world_;
       MPIHandler& handler_;
-      MPIObjectArchive<Key> archive_;
+      MPIObjectArchive<Key>& archive_;
       bool finished_;
 #else
-      ObjectArchive<Key> archive_;
+      ObjectArchive<Key>& archive_;
 #endif
 
       creation_handler_type task_creation_handler_;

@@ -3,19 +3,17 @@
 namespace TaskDistribution {
 #if ENABLE_MPI
   TaskManager::TaskManager(boost::mpi::communicator& world,
-      MPIHandler& handler):
-    TaskManager(Tags(), world, handler) { }
+      MPIHandler& handler, MPIObjectArchive<Key>& archive):
+    TaskManager(Tags(), world, handler, archive) { }
 
   TaskManager::TaskManager(Tags const& tags, boost::mpi::communicator& world,
-      MPIHandler& handler):
+      MPIHandler& handler, MPIObjectArchive<Key>& archive):
     tags_(tags),
     world_(world),
     handler_(handler),
-    archive_(world_, handler_,
-        [](Key const& key, boost::mpi::communicator& world)
-        { return key.is_valid() && world.rank() == 0; }),
+    archive_(archive),
     finished_(false),
-    unit_manager_(world_, handler_, archive_) {
+    unit_manager_(world_, handler_, archive) {
       handler.insert(tags_.finish,
           std::bind(&TaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
@@ -23,6 +21,10 @@ namespace TaskDistribution {
       clear_task_creation_handler();
       clear_task_begin_handler();
       clear_task_end_handler();
+
+      archive_.set_insert_filter(
+        [](Key const& key, boost::mpi::communicator& world)
+        { return key.is_valid() && world.rank() == 0; });
     }
 
   TaskManager::~TaskManager() {
@@ -30,8 +32,9 @@ namespace TaskDistribution {
       broadcast_finish();
   }
 #else
-  TaskManager::TaskManager():
-    unit_manager_(archive_) { }
+  TaskManager::TaskManager(ObjectArchive<Key>& archive):
+    unit_manager_(archive),
+    archive_(archive) { }
 
   TaskManager::~TaskManager() { }
 #endif
