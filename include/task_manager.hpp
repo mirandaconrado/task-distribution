@@ -4,7 +4,7 @@
 #include "function_traits.hpp"
 #if ENABLE_MPI
 #include <boost/mpi/communicator.hpp>
-#include "mpi_object_archive.hpp"
+#include "object_archive_mpi.hpp"
 #include "mpi_handler.hpp"
 #else
 #include "object_archive.hpp"
