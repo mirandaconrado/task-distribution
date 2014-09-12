@@ -29,10 +29,14 @@
 // 1) whether the object must run on the master node, chosen through the method
 // "run_locally()". This should be used in case there is some restriction, like
 // file requirements or the operator() method is so fast that the communication
-// overhead isn't worth. The node is allowed to run anywhere by default;
+// overhead isn't worth. The unit is allowed to run anywhere by default;
 // 2) whether the result should be saved to disk, through the method
 // "should_save()". For very simple units, it may not be necessary or even
 // desidered to save the result of the computation. The default is to save.
+//
+// If an unit doesn't save its result, it's called again each time its result is
+// required. Therefore, an unit that must run locally must also save its result,
+// as other nodes wouldn't be able to run it or load its result.
 //
 // For an example of how to implement an unit, check the IdentityComputingUnit
 // below.
@@ -143,7 +147,7 @@ namespace TaskDistribution {
         ComputingUnit<IdentityComputingUnit<T>>("identity") { }
 
       virtual bool run_locally() const {
-        return true;
+        return false;
       }
 
       virtual bool should_save() const {

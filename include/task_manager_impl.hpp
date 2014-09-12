@@ -45,6 +45,10 @@ namespace TaskDistribution {
         "Can't convert from arguments provided to expected."
     );
 
+    BOOST_ASSERT_MSG(!computing_unit.run_locally() ||
+        computing_unit.should_save(),
+        "a computing unit can only run locally if it stores its result");
+
     // Make tuples of normal arguments and task arguments
     unit_args_tuple_type args_tuple(
         make_args_tuple<unit_args_tuple_type>(args...));
