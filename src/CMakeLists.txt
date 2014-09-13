@@ -3,6 +3,7 @@ add_library(task_distribution
   computing_unit_manager.cpp
   computing_unit_manager_mpi.cpp
   task_manager.cpp
+  task_manager_mpi.cpp
 )
 
 target_link_libraries(task_distribution

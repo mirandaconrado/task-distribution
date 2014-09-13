@@ -2,16 +2,9 @@
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
 #include "function_traits.hpp"
-#if ENABLE_MPI
-#include <boost/mpi/communicator.hpp>
-#include "object_archive_mpi.hpp"
-#include "mpi_handler.hpp"
-#include "computing_unit_manager_mpi.hpp"
-#else
 #include "object_archive.hpp"
-#include "computing_unit_manager.hpp"
-#endif
 
+#include "computing_unit_manager.hpp"
 #include "key.hpp"
 
 #include <functional>
@@ -26,20 +19,10 @@ namespace TaskDistribution {
         creation_handler_type;
       typedef std::function<void (Key const&)> action_handler_type;
 
-#if ENABLE_MPI
-      struct Tags {
-        int finish = 9;
-      };
+      TaskManager(ObjectArchive<Key>& archive,
+          ComputingUnitManager& unit_manager);
 
-      TaskManager(boost::mpi::communicator& world, MPIHandler& handler,
-          MPIObjectArchive<Key>& archive);
-      TaskManager(Tags const& tags, boost::mpi::communicator& world,
-          MPIHandler& handler, MPIObjectArchive<Key>& archive);
-#else
-      TaskManager(ObjectArchive<Key>& archive);
-#endif
-
-      ~TaskManager();
+      virtual ~TaskManager();
 
       // Creates a task for the unit and arguments provided.
       template <class Unit, class... Args>
@@ -56,11 +39,11 @@ namespace TaskDistribution {
       template <class T>
       Task<T> new_identity_task(Task<T> const& arg);
 
-      // Proxy to either local or MPI task processing.
-      void run();
+      // Local task processing.
+      virtual void run();
 
-      // Id of this manager, which is its rank with MPI or 0 otherwise.
-      size_t id() const;
+      // Id of this manager, which is 0 for non-parallel approaches.
+      virtual size_t id() const;
 
       void set_task_creation_handler(creation_handler_type handler);
       void clear_task_creation_handler();
@@ -71,24 +54,10 @@ namespace TaskDistribution {
       void set_task_end_handler(action_handler_type handler);
       void clear_task_end_handler();
 
-    private:
-#if ENABLE_MPI
-      // Runs the manager that allocates tasks.
-      void run_master();
-
-      // Runs the slaves that just compute stuff.
-      void run_slave();
-
-      // Sends the next ready task to a given slave. Returns true if a task was
-      // allocated.
-      bool send_next_task(int slave);
-
-      // Handler to MPI tag.
-      bool process_finish(int source, int tag);
-
-      // Sends a finish tag to all other nodes.
-      void broadcast_finish();
-#endif
+    protected:
+      template <class Unit>
+      Task<typename CompileUtils::function_traits<Unit>::return_type>
+      new_invalid_task(Unit const& computing_unit);
 
       // Runs locally until there are not more tasks
       void run_single();
@@ -103,7 +72,7 @@ namespace TaskDistribution {
       Key get_key(T const& data, Key::Type type);
 
       // Creates a new key of a given type.
-      Key new_key(Key::Type type);
+      virtual Key new_key(Key::Type type);
 
       // Creates children and parents if they are invalid.
       void create_family_lists(TaskEntry& entry);
@@ -117,17 +86,8 @@ namespace TaskDistribution {
       template <class T>
       void get_result(Key const& task_key, T& ret);
 
-#if ENABLE_MPI
-      Tags tags_;
-      boost::mpi::communicator& world_;
-      MPIHandler& handler_;
-      MPIObjectArchive<Key>& archive_;
-      MPIComputingUnitManager unit_manager_;
-      bool finished_;
-#else
       ObjectArchive<Key>& archive_;
-      ComputingUnitManager unit_manager_;
-#endif
+      ComputingUnitManager& unit_manager_;
 
       creation_handler_type task_creation_handler_;
       action_handler_type task_begin_handler_, task_end_handler_;

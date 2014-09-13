@@ -18,9 +18,8 @@ namespace TaskDistribution {
   template <class Unit, class... Args>
   Task<typename CompileUtils::function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
-    if (world_.rank() != 0)
-      return Task<
-        typename CompileUtils::function_traits<Unit>::return_type>(Key(), this);
+    if (id() != 0)
+      return new_invalid_task(computing_unit);
 
     typedef typename CompileUtils::clean_tuple<Args...>::type
       given_args_tuple_type;
@@ -127,6 +126,13 @@ namespace TaskDistribution {
   template <class T>
   Task<T> TaskManager::new_identity_task(Task<T> const& arg) {
     return arg;
+  }
+
+  template <class Unit>
+  Task<typename CompileUtils::function_traits<Unit>::return_type>
+  TaskManager::new_invalid_task(Unit const& computing_unit) {
+    return Task<
+      typename CompileUtils::function_traits<Unit>::return_type>(Key(), this);
   }
 
   template <class T>
