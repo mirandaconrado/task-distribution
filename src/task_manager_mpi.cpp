@@ -29,10 +29,7 @@ namespace TaskDistribution {
         { return key.is_valid() && world.rank() == 0; });
     }
 
-  MPITaskManager::~MPITaskManager() {
-    if (world_.rank() == 0)
-      broadcast_finish();
-  }
+  MPITaskManager::~MPITaskManager() { }
 
   void MPITaskManager::run() {
     if (world_.size() > 1) {
@@ -97,6 +94,8 @@ namespace TaskDistribution {
         }
       }
     }
+
+    broadcast_finish();
   }
 
   void MPITaskManager::run_slave() {
