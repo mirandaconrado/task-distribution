@@ -4,7 +4,9 @@ namespace TaskDistribution {
   TaskManager::TaskManager(ObjectArchive<Key>& archive,
       ComputingUnitManager& unit_manager):
     archive_(archive),
-    unit_manager_(unit_manager) { }
+    unit_manager_(unit_manager) {
+      printf("%lu\n", archive.available_objects().size());
+    }
 
   TaskManager::~TaskManager() { }
 
