@@ -79,6 +79,12 @@ namespace TaskDistribution {
       ret.node_id = world.rank();
       return ret;
     }
+
+    static Key new_key(Type type) {
+      BOOST_ASSERT_MSG(false,
+          "can't call new_key() without world while using MPI");
+      return Key();
+    }
 #else
     static Key new_key(Type type) {
       static size_t next_obj = 1;

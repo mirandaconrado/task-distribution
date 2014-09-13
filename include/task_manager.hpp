@@ -6,11 +6,12 @@
 #include <boost/mpi/communicator.hpp>
 #include "object_archive_mpi.hpp"
 #include "mpi_handler.hpp"
+#include "computing_unit_manager_mpi.hpp"
 #else
 #include "object_archive.hpp"
+#include "computing_unit_manager.hpp"
 #endif
 
-#include "computing_unit_manager.hpp"
 #include "key.hpp"
 
 #include <functional>
@@ -121,9 +122,11 @@ namespace TaskDistribution {
       boost::mpi::communicator& world_;
       MPIHandler& handler_;
       MPIObjectArchive<Key>& archive_;
+      MPIComputingUnitManager unit_manager_;
       bool finished_;
 #else
       ObjectArchive<Key>& archive_;
+      ComputingUnitManager unit_manager_;
 #endif
 
       creation_handler_type task_creation_handler_;
@@ -139,7 +142,6 @@ namespace TaskDistribution {
       // List of tasks that are ready to compute.
       KeyList ready_;
 
-      ComputingUnitManager unit_manager_;
 
       // Auxiliary methods to build argument tuples tuples.
 

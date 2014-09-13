@@ -12,8 +12,8 @@ namespace TaskDistribution {
     world_(world),
     handler_(handler),
     archive_(archive),
-    finished_(false),
-    unit_manager_(world_, handler_, archive) {
+    unit_manager_(world_, handler_, archive),
+    finished_(false) {
       handler.insert(tags_.finish,
           std::bind(&TaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
@@ -84,7 +84,7 @@ namespace TaskDistribution {
         handler_.run();
       } while (unit_manager_.get_tasks_ended().empty());
 
-      ComputingUnitManager::TasksList const& finished_tasks =
+      MPIComputingUnitManager::TasksList const& finished_tasks =
         unit_manager_.get_tasks_ended();
 
       for (auto& it : finished_tasks) {
