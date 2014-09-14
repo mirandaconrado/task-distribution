@@ -4,12 +4,6 @@
 
 boost::mpi::environment env;
 boost::mpi::communicator world;
-MPIHandler handler(world);
-MPIObjectArchive<TaskDistribution::Key> archive(world, handler);
-TaskDistribution::MPIComputingUnitManager unit_manager(world, handler, archive);
-TaskDistribution::MPITaskManager task_manager(world, handler, archive,
-    unit_manager);
-
 
 class Fibonacci:
   public TaskDistribution::ComputingUnit<Fibonacci> {
@@ -25,7 +19,6 @@ class Fibonacci:
     }
 
     int operator()(int v1, int v2) const {
-      printf("%d\n", world.rank());
       return v1 + v2;
     }
 };
@@ -65,39 +58,113 @@ class Factorial:
       create_fibonacci(n-1), create_fibonacci(n-2));
 }*/
 
-TaskDistribution::Task<double> create_factorial(int n) {
+TaskDistribution::Task<double> create_factorial(int n,
+    TaskDistribution::TaskManager* task_manager) {
   if (n <= 1)
-    return task_manager.new_identity_task(1.);
+    return task_manager->new_identity_task(1.);
 
   Factorial f;
   f.n = n;
 
-  return task_manager.new_task(f, create_factorial(n-1));
+  return task_manager->new_task(f, create_factorial(n-1, task_manager));
 }
 
 int main() {
-  int n = 10;
-  //TaskDistribution::Task<int> task = create_fibonacci(n);
+  MPIHandler handler(world);
+  MPIObjectArchive<TaskDistribution::Key> archive(world, handler);
+  TaskDistribution::MPIComputingUnitManager unit_manager(world, handler,
+      archive);
 
-  task_manager.set_task_creation_handler(
-      [](std::string const& name, TaskDistribution::Key const& key) {
+  TaskDistribution::Task<double> task;
+  //int n = 10;
+  int n = 2;
+
+  {
+    TaskDistribution::MPITaskManager task_manager(world, handler, archive,
+        unit_manager);
+
+    //TaskDistribution::Task<int> task = create_fibonacci(n);
+
+    task_manager.set_task_creation_handler(
+        [](std::string const& name, TaskDistribution::Key const& key) {
         printf("Creating \"%s\" with (%lu,%lu)\n", name.c_str(), key.node_id,
           key.obj_id);
         });
 
-  task_manager.set_task_begin_handler(
-      [](TaskDistribution::Key const& key) {
+    task_manager.set_task_begin_handler(
+        [](TaskDistribution::Key const& key) {
         printf("Begin (%lu,%lu)\n", key.node_id, key.obj_id);
         });
 
-  task_manager.set_task_end_handler(
-      [](TaskDistribution::Key const& key) {
+    task_manager.set_task_end_handler(
+        [](TaskDistribution::Key const& key) {
         printf("End (%lu,%lu)\n", key.node_id, key.obj_id);
         });
 
-  TaskDistribution::Task<double> task = create_factorial(n);
+    task = create_factorial(n, &task_manager);
+  }
 
-  task_manager.run();
+  world.barrier();
+  handler.clear(TaskDistribution::MPITaskManager::Tags().finish);
+
+  n = 3;
+
+  {
+    TaskDistribution::MPITaskManager task_manager(world, handler, archive,
+        unit_manager);
+
+    task_manager.set_task_creation_handler(
+        [](std::string const& name, TaskDistribution::Key const& key) {
+        printf("Creating \"%s\" with (%lu,%lu)\n", name.c_str(), key.node_id,
+          key.obj_id);
+        });
+
+    task_manager.set_task_begin_handler(
+        [](TaskDistribution::Key const& key) {
+        printf("Begin (%lu,%lu)\n", key.node_id, key.obj_id);
+        });
+
+    task_manager.set_task_end_handler(
+        [](TaskDistribution::Key const& key) {
+        printf("End (%lu,%lu)\n", key.node_id, key.obj_id);
+        });
+
+    task = create_factorial(n, &task_manager);
+
+    task_manager.run();
+  }
+
+  n = 4;
+
+  world.barrier();
+  handler.clear(TaskDistribution::MPITaskManager::Tags().finish);
+
+  {
+    TaskDistribution::MPITaskManager task_manager(world, handler, archive,
+        unit_manager);
+
+    task_manager.set_task_creation_handler(
+        [](std::string const& name, TaskDistribution::Key const& key) {
+        printf("Creating \"%s\" with (%lu,%lu)\n", name.c_str(), key.node_id,
+          key.obj_id);
+        });
+
+    task_manager.set_task_begin_handler(
+        [](TaskDistribution::Key const& key) {
+        printf("Begin (%lu,%lu)\n", key.node_id, key.obj_id);
+        });
+
+    task_manager.set_task_end_handler(
+        [](TaskDistribution::Key const& key) {
+        printf("End (%lu,%lu)\n", key.node_id, key.obj_id);
+        });
+
+    task = create_factorial(n, &task_manager);
+
+    task_manager.run();
+  }
+
+  world.barrier();
 
   if (world.rank() == 0) {
     //printf("result = %d\n", task());
