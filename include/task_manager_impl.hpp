@@ -144,8 +144,7 @@ namespace TaskDistribution {
 
     // Process found keys
     for (auto it = range.first; it != range.second; ++it) {
-      std::string other_data_str;
-      archive_.load_raw(it->second, other_data_str);
+      std::string other_data_str = load_string_to_hash(it->second);
       if (data_str == other_data_str)
           return it->second;
     }

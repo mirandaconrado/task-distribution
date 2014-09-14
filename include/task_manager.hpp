@@ -65,6 +65,10 @@ namespace TaskDistribution {
       // Processes the end of a task, evaluating if its children may run
       void task_completed(Key const& task_key);
 
+      std::string load_string_to_hash(Key const& key);
+
+      void load_archive();
+
       // Checks if the given data already has a local key. If it does, returns
       // it. Otherwise, creates a new key and inserts it into the archive. This
       // is useful to avoid having lots of similar data with differente keys.

@@ -5,7 +5,8 @@ namespace TaskDistribution {
       ComputingUnitManager& unit_manager):
     archive_(archive),
     unit_manager_(unit_manager) {
-      printf("%lu\n", archive.available_objects().size());
+      if (!archive.available_objects().empty())
+        load_archive();
     }
 
   TaskManager::~TaskManager() { }
@@ -45,6 +46,35 @@ namespace TaskDistribution {
 
   size_t TaskManager::id() const {
     return 0;
+  }
+
+  std::string TaskManager::load_string_to_hash(Key const& key) {
+    std::string data_str;
+    if (key.type != Key::Task) {
+      archive_.load_raw(key, data_str);
+    }
+    else {
+      TaskEntry entry;
+      archive_.load(key, entry);
+      entry.task_key = Key();
+      entry.result_key = Key();
+      entry.parents_key = Key();
+      entry.children_key = Key();
+      entry.active_parents = 0;
+      data_str = ObjectArchive<Key>::serialize(entry);
+    }
+
+    return data_str;
+  }
+
+  void TaskManager::load_archive() {
+    printf("%lu\n", archive_.available_objects().size());
+    std::hash<std::string> hasher;
+    for (auto key : archive_.available_objects()) {
+      std::string data_str = load_string_to_hash(*key);
+      size_t hash = hasher(data_str);
+      map_hash_to_key_.emplace(hash, *key);
+    }
   }
 
   void TaskManager::set_task_creation_handler(creation_handler_type handler) {
