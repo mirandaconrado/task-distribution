@@ -72,9 +72,9 @@ namespace TaskDistribution {
 
     // Creates a new unique key. The method has an internal counter to guarantee
     // that each key created is unique.
+    static size_t next_obj;
 #if ENABLE_MPI
     static Key new_key(boost::mpi::communicator& world, Type type) {
-      static size_t next_obj = 1;
       Key ret({0, next_obj++, type});
       ret.node_id = world.rank();
       return ret;
@@ -87,7 +87,6 @@ namespace TaskDistribution {
     }
 #else
     static Key new_key(Type type) {
-      static size_t next_obj = 1;
       Key ret({0, next_obj++, type});
       return ret;
     }

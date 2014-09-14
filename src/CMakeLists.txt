@@ -2,6 +2,7 @@ add_library(task_distribution
   computing_unit.cpp
   computing_unit_manager.cpp
   computing_unit_manager_mpi.cpp
+  key.cpp
   task_manager.cpp
   task_manager_mpi.cpp
 )
