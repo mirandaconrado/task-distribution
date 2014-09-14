@@ -71,6 +71,8 @@ namespace TaskDistribution {
     printf("%lu\n", archive_.available_objects().size());
     std::hash<std::string> hasher;
     for (auto key : archive_.available_objects()) {
+      if (!key->is_valid())
+        continue;
       std::string data_str = load_string_to_hash(*key);
       size_t hash = hasher(data_str);
       map_hash_to_key_.emplace(hash, *key);
