@@ -77,6 +77,9 @@ namespace TaskDistribution {
     if (archive_.available_objects().empty())
       return;
 
+    if (id() != 0)
+      return;
+
     printf("%lu\n", archive_.available_objects().size());
     std::hash<std::string> hasher;
 
