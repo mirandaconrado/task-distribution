@@ -80,7 +80,6 @@ namespace TaskDistribution {
     if (id() != 0)
       return;
 
-    printf("%lu\n", archive_.available_objects().size());
     std::hash<std::string> hasher;
 
     std::map<int, size_t> used_keys;
