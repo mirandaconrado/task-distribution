@@ -54,6 +54,8 @@ namespace TaskDistribution {
       void set_task_end_handler(action_handler_type handler);
       void clear_task_end_handler();
 
+      void load_archive();
+
     protected:
       template <class Unit>
       Task<typename CompileUtils::function_traits<Unit>::return_type>
@@ -67,7 +69,7 @@ namespace TaskDistribution {
 
       std::string load_string_to_hash(Key const& key);
 
-      void load_archive();
+      virtual void update_used_keys(std::map<int, size_t> const& used_keys);
 
       // Checks if the given data already has a local key. If it does, returns
       // it. Otherwise, creates a new key and inserts it into the archive. This

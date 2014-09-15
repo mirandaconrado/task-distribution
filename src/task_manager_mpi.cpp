@@ -20,6 +20,10 @@ namespace TaskDistribution {
           std::bind(&MPITaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
 
+      handler.insert(tags_.key_update,
+          std::bind(&MPITaskManager::process_key_update, this,
+            std::placeholders::_1, tags.key_update));
+
       clear_task_creation_handler();
       clear_task_begin_handler();
       clear_task_end_handler();
@@ -139,6 +143,14 @@ namespace TaskDistribution {
     return true;
   }
 
+  bool MPITaskManager::process_key_update(int source, int tag) {
+    size_t key;
+    world_.recv(source, tag, key);
+    Key::next_obj = std::max(Key::next_obj, key);
+
+    return true;
+  }
+
   void MPITaskManager::broadcast_finish() {
     for (int i = 1; i < world_.size(); i++)
       world_.send(i, tags_.finish, true);
@@ -146,6 +158,16 @@ namespace TaskDistribution {
 
   size_t MPITaskManager::id() const {
     return world_.rank();
+  }
+
+  void MPITaskManager::update_used_keys(
+      std::map<int, size_t> const& used_keys) {
+    for (auto it = used_keys.begin(); it != used_keys.end(); ++it) {
+      if (it->first == world_.rank())
+        Key::next_obj = std::max(Key::next_obj, it->second + 1);
+      else
+        world_.send(it->first, tags_.key_update, it->second + 1);
+    }
   }
 
   Key MPITaskManager::new_key(Key::Type type) {

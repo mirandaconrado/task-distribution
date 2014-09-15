@@ -82,6 +82,7 @@ int main() {
   {
     TaskDistribution::MPITaskManager task_manager(world, handler, archive,
         unit_manager);
+    task_manager.load_archive();
 
     //TaskDistribution::Task<int> task = create_fibonacci(n);
 
@@ -106,12 +107,14 @@ int main() {
 
   world.barrier();
   handler.clear(TaskDistribution::MPITaskManager::Tags().finish);
+  handler.clear(TaskDistribution::MPITaskManager::Tags().key_update);
 
   n = 3;
 
   {
     TaskDistribution::MPITaskManager task_manager(world, handler, archive,
         unit_manager);
+    task_manager.load_archive();
 
     task_manager.set_task_creation_handler(
         [](std::string const& name, TaskDistribution::Key const& key) {
@@ -138,10 +141,12 @@ int main() {
 
   world.barrier();
   handler.clear(TaskDistribution::MPITaskManager::Tags().finish);
+  handler.clear(TaskDistribution::MPITaskManager::Tags().key_update);
 
   {
     TaskDistribution::MPITaskManager task_manager(world, handler, archive,
         unit_manager);
+    task_manager.load_archive();
 
     task_manager.set_task_creation_handler(
         [](std::string const& name, TaskDistribution::Key const& key) {

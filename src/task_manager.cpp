@@ -5,8 +5,8 @@ namespace TaskDistribution {
       ComputingUnitManager& unit_manager):
     archive_(archive),
     unit_manager_(unit_manager) {
-      if (!archive.available_objects().empty())
-        load_archive();
+      /*if (!archive.available_objects().empty())
+        load_archive();*/
     }
 
   TaskManager::~TaskManager() { }
@@ -67,16 +67,33 @@ namespace TaskDistribution {
     return data_str;
   }
 
+  void TaskManager::update_used_keys(std::map<int, size_t> const& used_keys) {
+    auto it = used_keys.find(id());
+    if (it != used_keys.end())
+      Key::next_obj = std::max(Key::next_obj, it->second + 1);
+  }
+
   void TaskManager::load_archive() {
+    if (archive_.available_objects().empty())
+      return;
+
     printf("%lu\n", archive_.available_objects().size());
     std::hash<std::string> hasher;
+
+    std::map<int, size_t> used_keys;
+
     for (auto key : archive_.available_objects()) {
       if (!key->is_valid())
         continue;
+
+      used_keys[key->node_id] = std::max(used_keys[key->node_id], key->obj_id);
+
       std::string data_str = load_string_to_hash(*key);
       size_t hash = hasher(data_str);
       map_hash_to_key_.emplace(hash, *key);
     }
+
+    update_used_keys(used_keys);
   }
 
   void TaskManager::set_task_creation_handler(creation_handler_type handler) {

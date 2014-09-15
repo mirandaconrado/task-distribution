@@ -13,6 +13,7 @@ namespace TaskDistribution {
     public:
       struct Tags {
         int finish = 9;
+        int key_update = 10;
       };
 
       MPITaskManager(boost::mpi::communicator& world, MPIHandler& handler,
@@ -30,7 +31,7 @@ namespace TaskDistribution {
       // Id of this manager, which is its rank with MPI.
       virtual size_t id() const;
 
-    private:
+    protected:
       // Runs the manager that allocates tasks.
       void run_master();
 
@@ -44,8 +45,12 @@ namespace TaskDistribution {
       // Handler to MPI tag.
       bool process_finish(int source, int tag);
 
+      bool process_key_update(int source, int tag);
+
       // Sends a finish tag to all other nodes.
       void broadcast_finish();
+
+      virtual void update_used_keys(std::map<int, size_t> const& used_keys);
 
       // Checks if the given data already has a local key. If it does, returns
       // it. Otherwise, creates a new key and inserts it into the archive. This
