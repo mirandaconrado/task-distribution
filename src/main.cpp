@@ -1,9 +1,7 @@
+#include "runnable.hpp"
 #include "task_manager_mpi.hpp"
 
 #include <unistd.h>
-
-boost::mpi::environment env;
-boost::mpi::communicator world;
 
 class Fibonacci:
   public TaskDistribution::ComputingUnit<Fibonacci> {
@@ -69,13 +67,21 @@ TaskDistribution::Task<double> create_factorial(int n,
   return task_manager->new_task(f, create_factorial(n-1, task_manager));
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+  boost::mpi::environment env(argc, argv);
+  boost::mpi::communicator world;
+
   MPIHandler handler(world);
   MPIObjectArchive<TaskDistribution::Key> archive(world, handler);
   TaskDistribution::MPIComputingUnitManager unit_manager(world, handler,
       archive);
+  TaskDistribution::MPITaskManager task_manager(world, handler, archive,
+      unit_manager);
+  TaskDistribution::Runnable runnable(argc, argv, archive, task_manager);
 
-  TaskDistribution::Task<double> task;
+  runnable.process();
+
+  /*TaskDistribution::Task<double> task;
   //int n = 10;
   int n = 2;
 
@@ -175,6 +181,7 @@ int main() {
     //printf("result = %d\n", task());
     printf("result = %f\n", task());
   }
+  */
 
   return 0;
 }
