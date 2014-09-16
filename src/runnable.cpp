@@ -77,7 +77,7 @@ namespace TaskDistribution {
 
   void Runnable::print_status() {
     for (auto it : map_units_to_tasks_) {
-      printf("%s : %lu\n", it.first.c_str(), it.second.keys.size());
+      printf("%s : %lu/%lu\n", it.first.c_str(), it.second.waiting, it.second.finished);
     }
   }
 
@@ -86,7 +86,40 @@ namespace TaskDistribution {
       return;
 
     create_tasks();
+    update_unit_map();
     print_status();
+  }
+
+  void Runnable::update_unit_map() {
+    std::list<Key const*> key_list = archive_.available_objects();
+    std::vector<Key const*> key_vector(key_list.begin(), key_list.end());
+
+    std::sort(key_vector.begin(), key_vector.end(),
+        [](Key const* k1, Key const* k2) { return *k1 < *k2; });
+
+    for (auto& unit_it : map_units_to_tasks_) {
+      auto unit_key_it = unit_it.second.keys.begin();
+      auto unit_key_end = unit_it.second.keys.end();
+      auto archive_key_it = key_vector.begin();
+      auto archive_key_end = key_vector.end();
+      while (unit_key_it != unit_key_end && archive_key_it != archive_key_end) {
+        if (*unit_key_it < **archive_key_it)
+          ++unit_key_it;
+        else if (*unit_key_it > **archive_key_it)
+          ++archive_key_it;
+        else {
+          TaskEntry task_entry;
+          archive_.load(*unit_key_it, task_entry);
+          if (task_entry.result_key.is_valid())
+            unit_it.second.finished++;
+          else
+            unit_it.second.waiting++;
+
+          ++unit_key_it;
+          ++archive_key_it;
+        }
+      }
+    }
   }
 
   void Runnable::task_creation_handler(std::string const& name,

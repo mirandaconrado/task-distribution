@@ -21,6 +21,8 @@ namespace TaskDistribution {
 
       void check();
 
+      void update_unit_map();
+
     protected:
       void task_creation_handler(std::string const& name, Key const& key);
       void task_begin_handler(Key const& key);

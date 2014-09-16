@@ -63,6 +63,10 @@ namespace TaskDistribution {
       return obj_id < other.obj_id;
     }
 
+    bool operator>(Key const& other) const {
+      return other < *this;
+    }
+
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
       ar & node_id;
