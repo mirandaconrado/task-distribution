@@ -4,11 +4,11 @@ project(task-distribution)
 find_package(GTest REQUIRED)
 
 if(ENABLE_MPI)
-  find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem iostreams mpi serialization system)
+  find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem iostreams mpi program_options serialization system)
   set(MPI_LIB mpi mpi_cxx)
   add_definitions(-DENABLE_MPI)
 else()
-  find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem iostreams serialization system)
+  find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem iostreams program_options serialization system)
 endif()
 
 set(CMAKE_CXX_COMPILER "clang++")

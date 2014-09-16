@@ -14,9 +14,18 @@ namespace TaskDistribution {
       Runnable(int argc, char* argv[], ObjectArchive<Key>& archive,
           TaskManager& task_manager);
 
-      void process();
+      virtual void create_tasks() = 0;
+
+      int process();
+      void print_status();
+
+      void check();
 
     protected:
+      void task_creation_handler(std::string const& name, Key const& key);
+      void task_begin_handler(Key const& key);
+      void task_end_handler(Key const& key);
+
       ObjectArchive<Key>& archive_;
       TaskManager& task_manager_;
 

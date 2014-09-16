@@ -67,6 +67,18 @@ TaskDistribution::Task<double> create_factorial(int n,
   return task_manager->new_task(f, create_factorial(n-1, task_manager));
 }
 
+class FactorialRunnable: public TaskDistribution::Runnable {
+  public:
+    template <class... Args>
+      FactorialRunnable(Args&&... args):
+        Runnable(std::forward<Args>(args)...) { }
+
+    void create_tasks() {
+      int n = 2;
+      create_factorial(n, &task_manager_);
+    }
+};
+
 int main(int argc, char* argv[]) {
   boost::mpi::environment env(argc, argv);
   boost::mpi::communicator world;
@@ -77,7 +89,7 @@ int main(int argc, char* argv[]) {
       archive);
   TaskDistribution::MPITaskManager task_manager(world, handler, archive,
       unit_manager);
-  TaskDistribution::Runnable runnable(argc, argv, archive, task_manager);
+  FactorialRunnable runnable(argc, argv, archive, task_manager);
 
   runnable.process();
 

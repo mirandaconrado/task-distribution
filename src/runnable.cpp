@@ -1,5 +1,7 @@
 #include "runnable.hpp"
 
+#include <functional>
+
 namespace TaskDistribution {
   Runnable::Runnable(int argc, char* argv[], ObjectArchive<Key>& archive,
       TaskManager& task_manager):
@@ -29,11 +31,33 @@ namespace TaskDistribution {
       po::store(po::command_line_parser(argc, argv).
           options(all).positional(p).run(), vm);
       po::notify(vm);
+
+      task_manager_.set_task_creation_handler(
+          std::bind(&Runnable::task_creation_handler, this,
+            std::placeholders::_1, std::placeholders::_2));
+      task_manager_.set_task_begin_handler(
+          std::bind(&Runnable::task_begin_handler, this,
+            std::placeholders::_1));
+      task_manager_.set_task_end_handler(
+          std::bind(&Runnable::task_end_handler, this,
+            std::placeholders::_1));
     }
 
-  void Runnable::process() {
+  int Runnable::process() {
     if (vm.count("command")) {
       std::string cmd = vm["command"].as<std::string>();
+
+      if (cmd == "check") {
+        if (vm.count("help")) {
+          po::options_description allowed("Allowed options");
+          allowed.add(help_args);
+          std::cout << allowed << std::endl;
+          return 1;
+        }
+
+        check();
+        return 0;
+      }
 
       std::cout << "Invalid command \"" << cmd << "\"!" << std::endl <<
         std::endl;
@@ -47,5 +71,26 @@ namespace TaskDistribution {
     std::cout << "  invalidate   Invalidates one kind of task." << std::endl;
     std::cout << "  run          Compute all tasks and process the results." <<
       std::endl;
+
+    return 1;
+  }
+
+  void Runnable::print_status() {
+  }
+
+  void Runnable::check() {
+    if (task_manager_.id() != 0)
+      return;
+
+    create_tasks();
+    print_status();
+  }
+
+  void Runnable::task_creation_handler(std::string const& name,
+      Key const& key) {
+  }
+  void Runnable::task_begin_handler(Key const& key) {
+  }
+  void Runnable::task_end_handler(Key const& key) {
   }
 };
