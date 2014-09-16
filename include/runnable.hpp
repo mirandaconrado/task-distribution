@@ -26,6 +26,15 @@ namespace TaskDistribution {
       void task_begin_handler(Key const& key);
       void task_end_handler(Key const& key);
 
+      struct UnitEntry {
+        UnitEntry(): waiting(0), running(0), finished(0) { }
+
+        KeySet keys;
+        size_t waiting, running, finished;
+      };
+
+      std::map<std::string, UnitEntry> map_units_to_tasks_;
+
       ObjectArchive<Key>& archive_;
       TaskManager& task_manager_;
 

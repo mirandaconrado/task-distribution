@@ -76,6 +76,9 @@ namespace TaskDistribution {
   }
 
   void Runnable::print_status() {
+    for (auto it : map_units_to_tasks_) {
+      printf("%s : %lu\n", it.first.c_str(), it.second.keys.size());
+    }
   }
 
   void Runnable::check() {
@@ -88,6 +91,8 @@ namespace TaskDistribution {
 
   void Runnable::task_creation_handler(std::string const& name,
       Key const& key) {
+    map_units_to_tasks_[name].keys.insert(key);
+
   }
   void Runnable::task_begin_handler(Key const& key) {
   }
