@@ -15,11 +15,13 @@ namespace TaskDistribution {
           TaskManager& task_manager);
 
       virtual void create_tasks() = 0;
+      virtual void process_results() { }
 
       int process();
       void print_status();
 
       void check();
+      void run();
 
       void update_unit_map();
 

@@ -74,7 +74,7 @@ class FactorialRunnable: public TaskDistribution::Runnable {
         Runnable(std::forward<Args>(args)...) { }
 
     void create_tasks() {
-      int n = 2;
+      int n = 5;
       create_factorial(n, &task_manager_);
     }
 };

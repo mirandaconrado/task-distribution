@@ -59,6 +59,19 @@ namespace TaskDistribution {
         return 0;
       }
 
+      if (cmd == "run") {
+        if (vm.count("help")) {
+          po::options_description allowed("Allowed options");
+          allowed.add(help_args);
+          std::cout << allowed << std::endl;
+          return 1;
+        }
+
+        run();
+        return 0;
+      }
+
+
       std::cout << "Invalid command \"" << cmd << "\"!" << std::endl <<
         std::endl;
     }
@@ -131,6 +144,16 @@ namespace TaskDistribution {
     print_status();
   }
 
+  void Runnable::run() {
+    create_tasks();
+    update_unit_map();
+
+    task_manager_.run();
+
+    if (task_manager_.id() == 0)
+      process_results();
+  }
+
   void Runnable::update_unit_map() {
     std::list<Key const*> key_list = archive_.available_objects();
     std::vector<Key const*> key_vector(key_list.begin(), key_list.end());
@@ -166,10 +189,29 @@ namespace TaskDistribution {
   void Runnable::task_creation_handler(std::string const& name,
       Key const& key) {
     map_units_to_tasks_[name].keys.insert(key);
+  }
 
-  }
   void Runnable::task_begin_handler(Key const& key) {
+    for (auto& unit_it : map_units_to_tasks_) {
+      for (auto& it : unit_it.second.keys)
+        if (it == key) {
+          unit_it.second.waiting--;
+          unit_it.second.running++;
+          print_status();
+          return;
+        }
+    }
   }
+
   void Runnable::task_end_handler(Key const& key) {
+    for (auto& unit_it : map_units_to_tasks_) {
+      for (auto& it : unit_it.second.keys)
+        if (it == key) {
+          unit_it.second.running--;
+          unit_it.second.finished++;
+          print_status();
+          return;
+        }
+    }
   }
 };
