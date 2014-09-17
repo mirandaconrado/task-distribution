@@ -137,27 +137,6 @@ namespace TaskDistribution {
       // Internal constructor to avoid deadlock during unit register.
       ComputingUnit() { }
   };
-
-  // Example ComputingUnit that just returns its argument. Check that it
-  // satisfies all the requirements for a valid unit.
-  template <class T>
-  class IdentityComputingUnit: public ComputingUnit<IdentityComputingUnit<T>> {
-    public:
-      IdentityComputingUnit():
-        ComputingUnit<IdentityComputingUnit<T>>("identity") { }
-
-      virtual bool run_locally() const {
-        return false;
-      }
-
-      virtual bool should_save() const {
-        return false;
-      }
-
-      T operator()(T const& arg) const {
-        return arg;
-      }
-  };
 };
 
 #include "computing_unit_impl.hpp"
