@@ -76,9 +76,50 @@ namespace TaskDistribution {
   }
 
   void Runnable::print_status() {
-    for (auto it : map_units_to_tasks_) {
-      printf("%s : %lu/%lu\n", it.first.c_str(), it.second.waiting, it.second.finished);
+    size_t unit_name_len = 9, number_len = 8;
+
+    for (auto& it : map_units_to_tasks_) {
+      unit_name_len = std::max(unit_name_len, it.first.size());
+      size_t len = 0, size = it.second.keys.size();
+
+      while (size) {
+        len += 1;
+        size /= 10;
+      }
+
+      if (len == 0) len = 1;
+
+      number_len = std::max(number_len, len);
     }
+
+    size_t padding = 4;
+    std::string padding_str(padding, ' ');
+
+    size_t total_line_width = unit_name_len + number_len*3 + padding*3;
+    std::cout << "Unit name" <<
+      std::string(unit_name_len-strlen("Unit name"),' ') << padding_str
+      <<
+      "Waiting" << std::string(number_len-strlen("Waiting"),' ') << padding_str
+      <<
+      "Finished" << std::string(number_len-strlen("Finished"),' ') << padding_str
+      <<
+      "Running" << std::endl;
+    std::cout << std::string(total_line_width, '-') << std::endl;
+
+    for (auto& it : map_units_to_tasks_) {
+      char waiting_str[number_len+1], finished_str[number_len+1],
+           running_str[number_len+1];
+      sprintf(waiting_str, "%*lu", (int)number_len, it.second.waiting);
+      sprintf(finished_str, "%*lu", (int)number_len, it.second.finished);
+      sprintf(running_str, "%*lu", (int)number_len, it.second.running);
+
+      std::cout << it.first << std::string(unit_name_len-it.first.length(),' ');
+      std::cout << padding_str << waiting_str;
+      std::cout << padding_str << finished_str;
+      std::cout << padding_str << running_str;
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
   }
 
   void Runnable::check() {
