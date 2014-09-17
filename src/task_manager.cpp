@@ -56,6 +56,10 @@ namespace TaskDistribution {
     else {
       TaskEntry entry;
       archive_.load(key, entry);
+      // Special case of identity task
+      if (!entry.computing_unit_id_key.is_valid())
+        return "";
+
       entry.task_key = Key();
       entry.result_key = Key();
       entry.parents_key = Key();
@@ -91,6 +95,8 @@ namespace TaskDistribution {
       used_keys[key->node_id] = std::max(used_keys[key->node_id], key->obj_id);
 
       std::string data_str = load_string_to_hash(*key);
+      if (data_str == "")
+        continue;
       size_t hash = hasher(data_str);
       map_hash_to_key_.emplace(hash, *key);
     }

@@ -120,7 +120,18 @@ namespace TaskDistribution {
 
   template <class T>
   Task<T> TaskManager::new_identity_task(T const& arg) {
-    return new_task(IdentityComputingUnit<T>(), arg);
+    Key result_key = get_key(arg, Key::Result);
+    TaskEntry task_entry;
+    task_entry.result_key = result_key;
+    task_entry.should_save = true;
+    task_entry.run_locally = false;
+
+    Key task_key = get_key(task_entry, Key::Task);
+    archive_.load(task_key, task_entry);
+    task_entry.task_key = task_key;
+    archive_.insert(task_key, task_entry);
+
+    return Task<T>(task_key, this);
   }
 
   template <class T>
