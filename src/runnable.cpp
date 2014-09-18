@@ -41,6 +41,8 @@ namespace TaskDistribution {
       task_manager_.set_task_end_handler(
           std::bind(&Runnable::task_end_handler, this,
             std::placeholders::_1));
+
+      task_manager_.load_archive();
     }
 
   int Runnable::process() {
