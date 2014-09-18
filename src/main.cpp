@@ -75,8 +75,14 @@ class FactorialRunnable: public TaskDistribution::Runnable {
 
     void create_tasks() {
       int n = 5;
-      create_factorial(n, &task_manager_);
+      result = create_factorial(n, &task_manager_);
     }
+
+    void process_results() {
+      printf("result = %f\n", result());
+    }
+
+    TaskDistribution::Task<double> result;
 };
 
 int main(int argc, char* argv[]) {
