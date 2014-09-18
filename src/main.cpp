@@ -1,8 +1,6 @@
 #include "runnable.hpp"
 #include "task_manager_mpi.hpp"
 
-#include <unistd.h>
-
 class Fibonacci:
   public TaskDistribution::ComputingUnit<Fibonacci> {
   public:
@@ -43,7 +41,6 @@ class Factorial:
 
     double operator()(double v) const {
       printf("n = %f\tv=%f\n", n, v);
-//      sleep(1);
       return n * v;
     }
 };
@@ -98,108 +95,6 @@ int main(int argc, char* argv[]) {
   FactorialRunnable runnable(argc, argv, archive, task_manager);
 
   runnable.process();
-
-  /*TaskDistribution::Task<double> task;
-  //int n = 10;
-  int n = 2;
-
-  {
-    TaskDistribution::MPITaskManager task_manager(world, handler, archive,
-        unit_manager);
-    task_manager.load_archive();
-
-    //TaskDistribution::Task<int> task = create_fibonacci(n);
-
-    task_manager.set_task_creation_handler(
-        [](std::string const& name, TaskDistribution::Key const& key) {
-        printf("Creating \"%s\" with (%lu,%lu)\n", name.c_str(), key.node_id,
-          key.obj_id);
-        });
-
-    task_manager.set_task_begin_handler(
-        [](TaskDistribution::Key const& key) {
-        printf("Begin (%lu,%lu)\n", key.node_id, key.obj_id);
-        });
-
-    task_manager.set_task_end_handler(
-        [](TaskDistribution::Key const& key) {
-        printf("End (%lu,%lu)\n", key.node_id, key.obj_id);
-        });
-
-    task = create_factorial(n, &task_manager);
-  }
-
-  world.barrier();
-  handler.clear(TaskDistribution::MPITaskManager::Tags().finish);
-  handler.clear(TaskDistribution::MPITaskManager::Tags().key_update);
-
-  n = 3;
-
-  {
-    TaskDistribution::MPITaskManager task_manager(world, handler, archive,
-        unit_manager);
-    task_manager.load_archive();
-
-    task_manager.set_task_creation_handler(
-        [](std::string const& name, TaskDistribution::Key const& key) {
-        printf("Creating \"%s\" with (%lu,%lu)\n", name.c_str(), key.node_id,
-          key.obj_id);
-        });
-
-    task_manager.set_task_begin_handler(
-        [](TaskDistribution::Key const& key) {
-        printf("Begin (%lu,%lu)\n", key.node_id, key.obj_id);
-        });
-
-    task_manager.set_task_end_handler(
-        [](TaskDistribution::Key const& key) {
-        printf("End (%lu,%lu)\n", key.node_id, key.obj_id);
-        });
-
-    task = create_factorial(n, &task_manager);
-
-    task_manager.run();
-  }
-
-  n = 4;
-
-  world.barrier();
-  handler.clear(TaskDistribution::MPITaskManager::Tags().finish);
-  handler.clear(TaskDistribution::MPITaskManager::Tags().key_update);
-
-  {
-    TaskDistribution::MPITaskManager task_manager(world, handler, archive,
-        unit_manager);
-    task_manager.load_archive();
-
-    task_manager.set_task_creation_handler(
-        [](std::string const& name, TaskDistribution::Key const& key) {
-        printf("Creating \"%s\" with (%lu,%lu)\n", name.c_str(), key.node_id,
-          key.obj_id);
-        });
-
-    task_manager.set_task_begin_handler(
-        [](TaskDistribution::Key const& key) {
-        printf("Begin (%lu,%lu)\n", key.node_id, key.obj_id);
-        });
-
-    task_manager.set_task_end_handler(
-        [](TaskDistribution::Key const& key) {
-        printf("End (%lu,%lu)\n", key.node_id, key.obj_id);
-        });
-
-    task = create_factorial(n, &task_manager);
-
-    task_manager.run();
-  }
-
-  world.barrier();
-
-  if (world.rank() == 0) {
-    //printf("result = %d\n", task());
-    printf("result = %f\n", task());
-  }
-  */
 
   return 0;
 }
