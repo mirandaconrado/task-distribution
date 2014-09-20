@@ -42,7 +42,7 @@ namespace TaskDistribution {
 
       // If key is invalid, then compute locally the result and store at the
       // invalid position
-      if (!entry.should_save || !entry.result_key.is_valid())
+      if (!entry.result_key.is_valid())
         manager.process_local(entry);
 
       // Loads result even is key is invalid, as it contains the temporary
@@ -51,7 +51,7 @@ namespace TaskDistribution {
       archive.load(entry.result_key, result);
 
       // Removes the result if it was used only temporarily
-      if (!entry.should_save || !entry.result_key.is_valid())
+      if (!entry.result_key.is_valid())
         archive.remove(entry.result_key);
 
       std::get<I>(to) = result;

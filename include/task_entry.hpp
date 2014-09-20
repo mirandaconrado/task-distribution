@@ -26,11 +26,10 @@ namespace TaskDistribution {
     Key parents_key;           // Key to a list of keys of parent tasks
     Key children_key;          // Key to a list of keys of children tasks
     size_t active_parents;     // Number of parents that have to be computed
-    bool should_save, run_locally;
+    bool run_locally;
 
     TaskEntry():
       active_parents(0),
-      should_save(true),
       run_locally(false) { }
 
     template<class Archive>
@@ -44,7 +43,6 @@ namespace TaskDistribution {
       ar & parents_key;
       ar & children_key;
       ar & active_parents;
-      ar & should_save;
       ar & run_locally;
     }
   };

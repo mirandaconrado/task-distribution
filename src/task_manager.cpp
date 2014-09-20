@@ -158,7 +158,7 @@ namespace TaskDistribution {
     // Only add as active if it's a new parent
     if (parents.find(parent_key) == parents.end()) {
       parents.insert(parent_key);
-      if (!parent_entry.result_key.is_valid() && parent_entry.should_save)
+      if (!parent_entry.result_key.is_valid())
         child_entry.active_parents++;
     }
 

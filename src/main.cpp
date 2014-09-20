@@ -10,10 +10,6 @@ class Fibonacci:
       return true;
     }
 
-    virtual bool should_save() const {
-      return true;
-    }
-
     int operator()(int v1, int v2) const {
       return v1 + v2;
     }
@@ -33,10 +29,6 @@ class Factorial:
 
     virtual bool run_locally() const {
       return false;
-    }
-
-    virtual bool should_save() const {
-      return true;
     }
 
     double operator()(double v) const {

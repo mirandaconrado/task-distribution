@@ -66,11 +66,6 @@ namespace TaskDistribution {
         return false;
       }
 
-      // Should the computing results be saved? Defaults to true.
-      virtual bool should_save() const {
-        return true;
-      }
-
       // Static method to fetch the correct kind of unit for an id. Returns NULL
       // if not found.
       static BaseComputingUnit const* get_by_id(std::string const& id);

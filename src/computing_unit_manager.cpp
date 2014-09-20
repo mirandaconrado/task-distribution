@@ -11,9 +11,7 @@ namespace TaskDistribution {
     if (task.result_key.is_valid())
       return;
 
-    if (task.should_save) {
-      task.result_key = new_key(Key::Result);
-    }
+    task.result_key = new_key(Key::Result);
 
     // Assumes that the computing unit is defined. TODO: remove this assumption.
     BaseComputingUnit const* unit;
@@ -31,8 +29,7 @@ namespace TaskDistribution {
 
     unit->execute(archive_, task, *this);
 
-    if (task.should_save)
-      archive_.insert(task.task_key, task);
+    archive_.insert(task.task_key, task);
   }
 
   Key ComputingUnitManager::new_key(Key::Type type) {

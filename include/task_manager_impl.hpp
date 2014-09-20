@@ -44,10 +44,6 @@ namespace TaskDistribution {
         "Can't convert from arguments provided to expected."
     );
 
-    BOOST_ASSERT_MSG(!computing_unit.run_locally() ||
-        computing_unit.should_save(),
-        "a computing unit can only run locally if it stores its result");
-
     // Make tuples of normal arguments and task arguments
     unit_args_tuple_type args_tuple(
         make_args_tuple<unit_args_tuple_type>(args...));
@@ -70,7 +66,6 @@ namespace TaskDistribution {
     task_entry.computing_unit_id_key = computing_unit_id_key;
     task_entry.arguments_key = arguments_key;
     task_entry.arguments_tasks_key = arguments_tasks_key;
-    task_entry.should_save = computing_unit.should_save();
     task_entry.run_locally = computing_unit.run_locally();
 
     // Stores task entry and update its internal data
@@ -95,8 +90,7 @@ namespace TaskDistribution {
     archive_.insert(task_entry.parents_key, parents);
 
     // Check if task can be run now
-    if (task_entry.active_parents == 0 && task_entry.should_save &&
-        !task_entry.result_key.is_valid()) {
+    if (task_entry.active_parents == 0 && !task_entry.result_key.is_valid()) {
       bool found = false;
       for (auto& key : ready_) {
         if (key == task_key) {
@@ -124,7 +118,6 @@ namespace TaskDistribution {
     Key result_key = get_key(arg, Key::Result);
     TaskEntry task_entry;
     task_entry.result_key = result_key;
-    task_entry.should_save = true;
     task_entry.run_locally = false;
 
     Key task_key = get_key(task_entry, Key::Task);
