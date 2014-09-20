@@ -61,6 +61,18 @@ namespace TaskDistribution {
         return 0;
       }
 
+      if (cmd == "clean") {
+        if (vm.count("help")) {
+          po::options_description allowed("Allowed options");
+          allowed.add(help_args);
+          std::cout << allowed << std::endl;
+          return 1;
+        }
+
+        clean();
+        return 0;
+      }
+
       if (cmd == "run") {
         if (vm.count("help")) {
           po::options_description allowed("Allowed options");
@@ -146,6 +158,16 @@ namespace TaskDistribution {
     print_status();
   }
 
+  void Runnable::clean() {
+    if (task_manager_.id() != 0)
+      return;
+
+    create_tasks();
+    clean_tasks();
+    update_unit_map();
+    print_status();
+  }
+
   void Runnable::run() {
     create_tasks();
     update_unit_map();
@@ -190,6 +212,7 @@ namespace TaskDistribution {
 
   void Runnable::task_creation_handler(std::string const& name,
       Key const& key) {
+    printf("created task %s (%lu,%lu)\n", name.c_str(), key.node_id, key.obj_id);
     map_units_to_tasks_[name].keys.insert(key);
   }
 
@@ -215,5 +238,104 @@ namespace TaskDistribution {
           return;
         }
     }
+  }
+
+  void Runnable::clean_tasks() {
+    KeySet created_tasks;
+    for (auto& it : map_units_to_tasks_)
+      created_tasks.insert(it.second.keys.begin(), it.second.keys.end());
+
+    KeySet available_keys;
+    for (auto& it : archive_.available_objects())
+      if (it->type == Key::Task)
+        available_keys.insert(*it);
+
+    size_t tasks_removed = 0;
+    std::set<Key> possible_removals;
+
+    auto task_key_it = created_tasks.begin();
+    auto task_key_end = created_tasks.end();
+    auto archive_key_it = available_keys.begin();
+    auto archive_key_end = available_keys.end();
+
+    while (task_key_it != task_key_end && archive_key_it != archive_key_end) {
+      if (*task_key_it < *archive_key_it)
+        ++task_key_it;
+      else if (*task_key_it > *archive_key_it) {
+        tasks_removed += remove_task(*archive_key_it, possible_removals);
+        ++archive_key_it;
+      }
+      else {
+        ++task_key_it;
+        ++archive_key_it;
+      }
+    }
+
+    while (archive_key_it != archive_key_end) {
+      tasks_removed += remove_task(*archive_key_it, possible_removals);
+      ++archive_key_it;
+    }
+
+
+    for (auto& task_key : created_tasks) {
+      TaskEntry entry;
+      archive_.load(task_key, entry);
+      possible_removals.erase(entry.computing_unit_key);
+      possible_removals.erase(entry.arguments_key);
+      possible_removals.erase(entry.arguments_tasks_key);
+      possible_removals.erase(entry.computing_unit_id_key);
+    }
+
+    printf("Removed %lu tasks and %lu other entries.\n\n", tasks_removed,
+        possible_removals.size());
+
+    for (auto& removal : possible_removals)
+      archive_.remove(removal);
+  }
+
+  size_t Runnable::remove_task(Key const& task_key,
+      std::set<Key>& possible_removals) {
+    printf("remove task (%lu,%lu)\n", task_key.node_id, task_key.obj_id);
+    if (!archive_.is_available(task_key))
+      return 0;
+
+    TaskEntry entry;
+    archive_.load(task_key, entry);
+
+    // Identity task
+    if (!entry.computing_unit_id_key.is_valid())
+      return 0;
+
+    size_t tasks_removed = 0;
+
+    if (entry.computing_unit_key.is_valid())
+      possible_removals.insert(entry.computing_unit_key);
+
+    if (entry.arguments_key.is_valid())
+      possible_removals.insert(entry.arguments_key);
+
+    if (entry.arguments_tasks_key.is_valid())
+      possible_removals.insert(entry.arguments_tasks_key);
+
+    if (entry.result_key.is_valid())
+      archive_.remove(entry.result_key);
+
+    if (entry.computing_unit_id_key.is_valid())
+      possible_removals.insert(entry.computing_unit_id_key);
+
+    if (entry.parents_key.is_valid())
+      archive_.remove(entry.parents_key);
+
+    if (entry.children_key.is_valid()) {
+      KeySet children;
+      archive_.load(entry.children_key, children);
+      for (auto& child_key : children)
+        tasks_removed += remove_task(child_key, possible_removals);
+      archive_.remove(entry.children_key);
+    }
+
+    archive_.remove(task_key);
+
+    return tasks_removed + 1;
   }
 };

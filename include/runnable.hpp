@@ -21,6 +21,7 @@ namespace TaskDistribution {
       void print_status();
 
       void check();
+      void clean();
       void run();
 
       void update_unit_map();
@@ -29,6 +30,10 @@ namespace TaskDistribution {
       void task_creation_handler(std::string const& name, Key const& key);
       void task_begin_handler(Key const& key);
       void task_end_handler(Key const& key);
+
+      void clean_tasks();
+      size_t remove_task(Key const& task_key,
+          std::set<Key>& possible_removals);
 
       struct UnitEntry {
         UnitEntry(): waiting(0), running(0), finished(0) { }
