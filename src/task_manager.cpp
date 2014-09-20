@@ -56,15 +56,15 @@ namespace TaskDistribution {
     else {
       TaskEntry entry;
       archive_.load(key, entry);
-      // Special case of identity task
-      if (!entry.computing_unit_id_key.is_valid())
-        return "";
-
+      // Special case of tasks different from the identity
+      if (entry.computing_unit_id_key.is_valid()) {
+        entry.result_key = Key();
+        entry.parents_key = Key();
+        entry.children_key = Key();
+        entry.active_parents = 0;
+      }
       entry.task_key = Key();
-      entry.result_key = Key();
-      entry.parents_key = Key();
-      entry.children_key = Key();
-      entry.active_parents = 0;
+
       data_str = ObjectArchive<Key>::serialize(entry);
     }
 
