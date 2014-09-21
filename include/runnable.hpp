@@ -32,8 +32,10 @@ namespace TaskDistribution {
       void task_end_handler(Key const& key);
 
       void clean_tasks();
-      size_t remove_task(Key const& task_key,
-          std::set<Key>& possible_removals);
+      size_t remove_task(Key const& task_key, KeySet& possible_removals);
+      void relocate_keys();
+      void replace_key(Key const& task_key, Key const& current_key,
+          Key const& new_key);
 
       struct UnitEntry {
         UnitEntry(): waiting(0), running(0), finished(0) { }

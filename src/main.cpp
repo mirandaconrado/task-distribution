@@ -11,6 +11,7 @@ class Fibonacci:
     }
 
     int operator()(int v1, int v2) const {
+      printf("fibonacci\tv1 = %d\tv2=%d\n", v1, v2);
       return v1 + v2;
     }
 };
@@ -32,18 +33,20 @@ class Factorial:
     }
 
     double operator()(double v) const {
-      printf("n = %f\tv=%f\n", n, v);
+      printf("factorial\tn = %f\tv=%f\n", n, v);
       return n * v;
     }
 };
 
-/*TaskDistribution::Task<int> create_fibonacci(int n) {
+TaskDistribution::Task<int> create_fibonacci(int n,
+    TaskDistribution::TaskManager* task_manager) {
   if (n <= 1)
-    return task_manager.new_identity_task(1);
+    return task_manager->new_identity_task(1);
 
-  return task_manager.new_task(Fibonacci(),
-      create_fibonacci(n-1), create_fibonacci(n-2));
-}*/
+  return task_manager->new_task(Fibonacci(),
+      create_fibonacci(n-1, task_manager),
+      create_fibonacci(n-2, task_manager));
+}
 
 TaskDistribution::Task<double> create_factorial(int n,
     TaskDistribution::TaskManager* task_manager) {
@@ -63,15 +66,18 @@ class FactorialRunnable: public TaskDistribution::Runnable {
         Runnable(std::forward<Args>(args)...) { }
 
     void create_tasks() {
-      int n = 5;
-      result = create_factorial(n, &task_manager_);
+      int n = 4;
+      result_fact = create_factorial(n, &task_manager_);
+      result_fib = create_fibonacci(n, &task_manager_);
     }
 
     void process_results() {
-      printf("result = %f\n", result());
+      printf("result_fact = %f\n", result_fact());
+      printf("result_fib = %d\n", result_fib());
     }
 
-    TaskDistribution::Task<double> result;
+    TaskDistribution::Task<double> result_fact;
+    TaskDistribution::Task<int> result_fib;
 };
 
 int main(int argc, char* argv[]) {

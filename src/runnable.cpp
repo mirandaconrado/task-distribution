@@ -291,11 +291,12 @@ namespace TaskDistribution {
 
     for (auto& removal : possible_removals)
       archive_.remove(removal);
+
+    relocate_keys();
   }
 
   size_t Runnable::remove_task(Key const& task_key,
       std::set<Key>& possible_removals) {
-    printf("remove task (%lu,%lu)\n", task_key.node_id, task_key.obj_id);
     if (!archive_.is_available(task_key))
       return 0;
 
@@ -337,5 +338,99 @@ namespace TaskDistribution {
     archive_.remove(task_key);
 
     return tasks_removed + 1;
+  }
+
+  void Runnable::relocate_keys() {
+    std::map<Key, KeySet> map_key_to_task_key;
+
+    KeySet used_keys;
+    for (auto& it : archive_.available_objects()) {
+      if (it->type == Key::Task) {
+        Key const& task_key = *it;
+        used_keys.insert(task_key);
+
+        TaskEntry entry;
+        archive_.load(task_key, entry);
+
+#define CHECK(key) \
+        if (entry.key.is_valid()) { \
+          used_keys.insert(entry.key); \
+          map_key_to_task_key[entry.key].insert(task_key); \
+        }
+
+        CHECK(computing_unit_key);
+        CHECK(arguments_key);
+        CHECK(arguments_tasks_key);
+        CHECK(result_key);
+        CHECK(computing_unit_id_key);
+        CHECK(parents_key);
+        CHECK(children_key);
+      }
+    }
+
+    size_t last_obj_id = 0;
+    size_t current_node_id = 0;
+
+    auto used_keys_it = used_keys.begin();
+    auto used_keys_end = used_keys.end();
+    while (used_keys_it != used_keys_end) {
+      if (used_keys_it->node_id != current_node_id) {
+        current_node_id = used_keys_it->node_id;
+        last_obj_id = 0;
+      }
+
+      if (used_keys_it->type == Key::Task) {
+        ++used_keys_it;
+        continue;
+      }
+
+      // If there's a gap
+      if (used_keys_it->obj_id - last_obj_id > 1) {
+        if (used_keys.find(Key({current_node_id, last_obj_id+1, Key::Task})) != used_keys.end()) {
+          last_obj_id++;
+          continue;
+        }
+
+        Key const& current_key = *used_keys_it;
+        Key new_key({current_node_id, last_obj_id+1, current_key.type});
+        std::string data;
+        archive_.load_raw(current_key, data);
+        archive_.insert_raw(new_key, data);
+        archive_.remove(current_key);
+
+        for (auto& task_key : map_key_to_task_key.at(current_key))
+          replace_key(task_key, current_key, new_key);
+
+        auto used_keys_it_bak = used_keys_it;
+
+        last_obj_id++;
+        ++used_keys_it;
+
+        used_keys.erase(used_keys_it_bak);
+        used_keys.insert(new_key);
+      }
+      else
+        ++used_keys_it;
+    }
+  }
+
+  void Runnable::replace_key(Key const& task_key, Key const& current_key,
+      Key const& new_key) {
+    TaskEntry entry;
+    archive_.load(task_key, entry);
+
+#define CHANGE_KEY(key) \
+    if (entry.key == current_key) \
+      entry.key = new_key;
+
+    CHANGE_KEY(computing_unit_key);
+    CHANGE_KEY(arguments_key);
+    CHANGE_KEY(arguments_tasks_key);
+    CHANGE_KEY(result_key);
+    CHANGE_KEY(computing_unit_id_key);
+    CHANGE_KEY(parents_key);
+    CHANGE_KEY(children_key);
+
+    archive_.insert(task_key, entry);
   }
 };
