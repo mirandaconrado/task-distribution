@@ -15,7 +15,8 @@ namespace TaskDistribution {
     handler_(handler),
     archive_(archive),
     unit_manager_(unit_manager),
-    finished_(false) {
+    finished_(false),
+    tasks_per_node_(world_.size()-1, 0) {
       handler.insert(tags_.finish,
           std::bind(&MPITaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
@@ -46,28 +47,12 @@ namespace TaskDistribution {
   }
 
   void MPITaskManager::run_master() {
-    std::vector<int> tasks_per_node(world_.size()-1, 0);
-
     size_t n_running = 0;
 
     // Process whatever is left for MPI first
     handler_.run();
 
-    // Initial task allocation
-    int index = 1;
-    while (!ready_.empty()) {
-      // Maximum fixed allocation. TODO: not fixed
-      if (tasks_per_node[index-1] == 1)
-        break;
-
-      tasks_per_node[index-1]++;
-      if (!send_next_task(index))
-        break;
-      ++index;
-      ++n_running;
-      if (index == world_.size())
-        index = 1;
-    }
+    n_running += allocate_tasks();
 
     while (!ready_.empty() || n_running != 0) {
       // Process MPI stuff until a task has ended
@@ -83,23 +68,41 @@ namespace TaskDistribution {
       for (auto& it : finished_tasks) {
         task_completed(it.first);
         int slave = it.second;
-        --tasks_per_node[slave-1];
+        --tasks_per_node_[slave-1];
         --n_running;
       }
 
-      // Send new tasks to idle nodes
-      for (auto& it : finished_tasks) {
-        if (ready_.empty())
-          break;
-        int slave = it.second;
-        if (send_next_task(slave)) {
-          ++tasks_per_node[slave-1];
-          ++n_running;
+      n_running += allocate_tasks();
+    }
+
+    broadcast_finish();
+  }
+
+  size_t MPITaskManager::allocate_tasks() {
+    size_t n_running = 0;
+
+    bool allocated_a_task = true;
+
+    while (!ready_.empty() && allocated_a_task) {
+      allocated_a_task = false;
+
+      for (int i = 1; i < world_.size(); i++) {
+        // Maximum fixed allocation. TODO: not fixed
+        if (tasks_per_node_[i-1] < 1) {
+
+          // Tries to send task to slave. Fails if ready_.empty() after running
+          // local tasks.
+          if (!send_next_task(i))
+            break;
+
+          allocated_a_task = true;
+          tasks_per_node_[i-1]++;
+          n_running++;
         }
       }
     }
 
-    broadcast_finish();
+    return n_running;
   }
 
   void MPITaskManager::run_slave() {

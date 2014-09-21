@@ -38,6 +38,10 @@ namespace TaskDistribution {
       // Runs the slaves that just compute stuff.
       void run_slave();
 
+      // Allocates tasks to slaves and returns the number of new tasks running
+      // remotely.
+      size_t allocate_tasks();
+
       // Sends the next ready task to a given slave. Returns true if a task was
       // allocated.
       bool send_next_task(int slave);
@@ -67,6 +71,7 @@ namespace TaskDistribution {
       MPIObjectArchive<Key>& archive_;
       MPIComputingUnitManager& unit_manager_;
       bool finished_;
+      std::vector<int> tasks_per_node_;
   };
 };
 
