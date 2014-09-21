@@ -129,6 +129,7 @@ namespace TaskDistribution {
         if (entry.run_locally) {
           task_begin_handler_(task_key);
           unit_manager_.process_local(entry);
+          task_completed(task_key);
         }
         else
           got_task_for_remote = true;
