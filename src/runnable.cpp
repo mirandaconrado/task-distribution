@@ -73,6 +73,18 @@ namespace TaskDistribution {
         return 0;
       }
 
+      if (cmd == "invalidate") {
+        if (vm.count("help") || !vm.count("invalid")) {
+          po::options_description allowed("Allowed options");
+          allowed.add(help_args).add(invalidate_args);
+          std::cout << allowed << std::endl;
+          return 1;
+        }
+
+        invalidate(vm["invalid"].as<std::string>());
+        return 0;
+      }
+
       if (cmd == "run") {
         if (vm.count("help")) {
           po::options_description allowed("Allowed options");
@@ -168,6 +180,16 @@ namespace TaskDistribution {
     print_status();
   }
 
+  void Runnable::invalidate(std::string const& unit_name) {
+    if (task_manager_.id() != 0)
+      return;
+
+    create_tasks();
+    invalidate_unit(unit_name);
+    update_unit_map();
+    print_status();
+  }
+
   void Runnable::run() {
     create_tasks();
     update_unit_map();
@@ -251,7 +273,7 @@ namespace TaskDistribution {
         available_keys.insert(*it);
 
     size_t tasks_removed = 0;
-    std::set<Key> possible_removals;
+    KeySet possible_removals;
 
     auto task_key_it = created_tasks.begin();
     auto task_key_end = created_tasks.end();
@@ -276,15 +298,7 @@ namespace TaskDistribution {
       ++archive_key_it;
     }
 
-
-    for (auto& task_key : created_tasks) {
-      TaskEntry entry;
-      archive_.load(task_key, entry);
-      possible_removals.erase(entry.computing_unit_key);
-      possible_removals.erase(entry.arguments_key);
-      possible_removals.erase(entry.arguments_tasks_key);
-      possible_removals.erase(entry.computing_unit_id_key);
-    }
+    clean_possible_removals(possible_removals, created_tasks);
 
     printf("Removed %lu tasks and %lu other entries.\n\n", tasks_removed,
         possible_removals.size());
@@ -293,6 +307,24 @@ namespace TaskDistribution {
       archive_.remove(removal);
 
     relocate_keys();
+  }
+
+  void Runnable::invalidate_unit(std::string const& unit_name) {
+    if (map_units_to_tasks_.find(unit_name) == map_units_to_tasks_.end()) {
+      printf("No tasks with name \"%s\" found!", unit_name.c_str());
+      return;
+    }
+
+    UnitEntry& unit_entry = map_units_to_tasks_[unit_name];
+
+    size_t tasks_removed = 0;
+    KeySet possible_removals;
+
+    for (auto& task_key : unit_entry.keys)
+      tasks_removed += remove_task(task_key, possible_removals);
+
+    printf("Removed %lu tasks.\n"
+        "You may want to run the command \"clean\" now.\n\n", tasks_removed);
   }
 
   size_t Runnable::remove_task(Key const& task_key,
@@ -338,6 +370,18 @@ namespace TaskDistribution {
     archive_.remove(task_key);
 
     return tasks_removed + 1;
+  }
+
+  void Runnable::clean_possible_removals(KeySet& possible_removals,
+      KeySet const& created_tasks) {
+    for (auto& task_key : created_tasks) {
+      TaskEntry entry;
+      archive_.load(task_key, entry);
+      possible_removals.erase(entry.computing_unit_key);
+      possible_removals.erase(entry.arguments_key);
+      possible_removals.erase(entry.arguments_tasks_key);
+      possible_removals.erase(entry.computing_unit_id_key);
+    }
   }
 
   void Runnable::relocate_keys() {

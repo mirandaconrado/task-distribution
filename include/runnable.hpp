@@ -22,6 +22,7 @@ namespace TaskDistribution {
 
       void check();
       void clean();
+      void invalidate(std::string const& unit_name);
       void run();
 
       void update_unit_map();
@@ -32,7 +33,10 @@ namespace TaskDistribution {
       void task_end_handler(Key const& key);
 
       void clean_tasks();
+      void invalidate_unit(std::string const& unit_name);
       size_t remove_task(Key const& task_key, KeySet& possible_removals);
+      void clean_possible_removals(KeySet& possible_removals,
+          KeySet const& created_tasks);
       void relocate_keys();
       void replace_key(Key const& task_key, Key const& current_key,
           Key const& new_key);
