@@ -166,11 +166,15 @@ namespace TaskDistribution {
 
   void MPITaskManager::update_used_keys(
       std::map<int, size_t> const& used_keys) {
-    for (auto it = used_keys.begin(); it != used_keys.end(); ++it) {
-      if (it->first == world_.rank())
-        Key::next_obj = std::max(Key::next_obj, it->second + 1);
-      else
-        world_.send(it->first, tags_.key_update, it->second + 1);
+    if (world_.size() == 1)
+      TaskManager::update_used_keys(used_keys);
+    else {
+      for (auto it = used_keys.begin(); it != used_keys.end(); ++it) {
+        if (it->first == world_.rank())
+          Key::next_obj = std::max(Key::next_obj, it->second + 1);
+        else
+          world_.send(it->first, tags_.key_update, it->second + 1);
+      }
     }
   }
 
