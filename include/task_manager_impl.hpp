@@ -115,6 +115,9 @@ namespace TaskDistribution {
 
   template <class T>
   Task<T> TaskManager::new_identity_task(T const& arg) {
+    if (id() != 0)
+      return Task<T>(Key(), this);
+
     Key result_key = get_key(arg, Key::Result);
     TaskEntry task_entry;
     task_entry.result_key = result_key;
