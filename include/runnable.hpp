@@ -34,6 +34,7 @@ namespace TaskDistribution {
 
       void clean_tasks();
       void invalidate_unit(std::string const& unit_name);
+      void remove_result(Key const& task_key);
       size_t remove_task(Key const& task_key, KeySet& possible_removals);
       void clean_possible_removals(KeySet& possible_removals,
           KeySet const& created_tasks);

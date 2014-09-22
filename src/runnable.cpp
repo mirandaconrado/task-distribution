@@ -317,14 +317,23 @@ namespace TaskDistribution {
 
     UnitEntry& unit_entry = map_units_to_tasks_[unit_name];
 
-    size_t tasks_removed = 0;
-    KeySet possible_removals;
-
     for (auto& task_key : unit_entry.keys)
-      tasks_removed += remove_task(task_key, possible_removals);
+      remove_result(task_key);
+  }
 
-    printf("Removed %lu tasks.\n"
-        "You may want to run the command \"clean\" now.\n\n", tasks_removed);
+  void Runnable::remove_result(Key const& task_key) {
+    TaskEntry entry;
+    archive_.load(task_key, entry);
+    archive_.remove(entry.result_key);
+    entry.result_key = Key();
+    archive_.insert(task_key, entry);
+
+    if (entry.children_key.is_valid()) {
+      KeySet children;
+      archive_.load(entry.children_key, children);
+      for (auto& child_key : children)
+        remove_result(child_key);
+    }
   }
 
   size_t Runnable::remove_task(Key const& task_key,
