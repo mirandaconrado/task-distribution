@@ -1,6 +1,21 @@
 #include "runnable.hpp"
 #include "task_manager_mpi.hpp"
 
+class FibonacciPrint:
+  public TaskDistribution::ComputingUnit<FibonacciPrint> {
+  public:
+    FibonacciPrint(): ComputingUnit<FibonacciPrint>("fibonacci_print") {}
+
+    virtual bool run_locally() const {
+      return true;
+    }
+
+    int operator()(int v) const {
+      printf("result_fib = %d\n", v);
+      return 0;
+    }
+};
+
 class Fibonacci:
   public TaskDistribution::ComputingUnit<Fibonacci> {
   public:
@@ -11,7 +26,7 @@ class Fibonacci:
     }
 
     int operator()(int v1, int v2) const {
-      printf("fibonacci\tv1 = %d\tv2=%d\n", v1, v2);
+      printf("fibonacci\tv1 = %d\tv2 = %d\n", v1, v2);
       return v1 + v2;
     }
 };
@@ -33,7 +48,7 @@ class Factorial:
     }
 
     double operator()(double v) const {
-      printf("factorial\tn = %f\tv=%f\n", n, v);
+      printf("factorial\tn = %f\tv = %f\n", n, v);
       return n * v;
     }
 };
@@ -68,16 +83,15 @@ class FactorialRunnable: public TaskDistribution::Runnable {
     void create_tasks() {
       int n = 4;
       result_fact = create_factorial(n, &task_manager_);
-      result_fib = create_fibonacci(n, &task_manager_);
+      task_manager_.new_task(FibonacciPrint(),
+          create_fibonacci(n, &task_manager_));
     }
 
     void process_results() {
       printf("result_fact = %f\n", result_fact());
-      printf("result_fib = %d\n", result_fib());
     }
 
     TaskDistribution::Task<double> result_fact;
-    TaskDistribution::Task<int> result_fib;
 };
 
 int main(int argc, char* argv[]) {
