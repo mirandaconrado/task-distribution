@@ -9,11 +9,17 @@ else
   cd build_normal;
 fi;
 
-make test
+make
 if [ $? != 0 ]
 then
   exit
 fi
+rm -f example.archive
+./example/example.bin check
+./example/example.bin run
+./example/example.bin invalidate -i 'fibonacci'
+./example/example.bin clean
+./example/example.bin run
 cd ..
 
 if [ ! -d build_mpi ];
@@ -25,9 +31,15 @@ else
   cd build_mpi;
 fi;
 
-make test
+make
 if [ $? != 0 ]
 then
   exit
 fi
+rm -f example.archive
+./example/example.bin check
+mpirun -np 2 ./example/example.bin run
+./example/example.bin invalidate -i 'fibonacci'
+./example/example.bin clean
+mpirun -np 2 ./example/example.bin run
 cd ..
