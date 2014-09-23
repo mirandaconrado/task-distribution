@@ -234,7 +234,6 @@ namespace TaskDistribution {
 
   void Runnable::task_creation_handler(std::string const& name,
       Key const& key) {
-    printf("created task %s (%lu,%lu)\n", name.c_str(), key.node_id, key.obj_id);
     map_units_to_tasks_[name].keys.insert(key);
   }
 

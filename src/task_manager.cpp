@@ -4,10 +4,7 @@ namespace TaskDistribution {
   TaskManager::TaskManager(ObjectArchive<Key>& archive,
       ComputingUnitManager& unit_manager):
     archive_(archive),
-    unit_manager_(unit_manager) {
-      /*if (!archive.available_objects().empty())
-        load_archive();*/
-    }
+    unit_manager_(unit_manager) { }
 
   TaskManager::~TaskManager() { }
 
