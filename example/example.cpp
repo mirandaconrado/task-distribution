@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
   MPIHandler handler(world);
   MPIObjectArchive<TaskDistribution::Key> archive(world, handler);
-  archive.init("main.archive");
+  archive.init("example.archive");
   TaskDistribution::MPIComputingUnitManager unit_manager(world, handler,
       archive);
   TaskDistribution::MPITaskManager task_manager(world, handler, archive,

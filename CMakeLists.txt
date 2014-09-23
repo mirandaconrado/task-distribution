@@ -30,5 +30,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 add_subdirectory(lib/object-archive/lib/mpi_handler/src)
+add_subdirectory(example)
 add_subdirectory(src)
 add_subdirectory(test)
