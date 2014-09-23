@@ -6,17 +6,19 @@ add_library(task_distribution SHARED
   task_manager.cpp
 )
 
-add_library(task_distribution_mpi SHARED
-  computing_unit_manager_mpi.cpp
-  task_manager_mpi.cpp
-)
-
 target_link_libraries(task_distribution
   ${Boost_LIBRARIES}
 )
 
-target_link_libraries(task_distribution_mpi
-  task_distribution
-  mpi_handler
-  ${MPI_LIB}
-)
+if (ENABLE_MPI)
+  add_library(task_distribution_mpi SHARED
+    computing_unit_manager_mpi.cpp
+    task_manager_mpi.cpp
+  )
+
+  target_link_libraries(task_distribution_mpi
+    task_distribution
+    mpi_handler
+    ${MPI_LIB}
+  )
+endif()

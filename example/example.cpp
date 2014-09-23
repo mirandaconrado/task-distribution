@@ -1,5 +1,10 @@
 #include "runnable.hpp"
+
+#if ENABLE_MPI
 #include "task_manager_mpi.hpp"
+#else
+#include "task_manager.hpp"
+#endif
 
 class FibonacciPrint:
   public TaskDistribution::ComputingUnit<FibonacciPrint> {
@@ -95,6 +100,7 @@ class FactorialRunnable: public TaskDistribution::Runnable {
 };
 
 int main(int argc, char* argv[]) {
+#if ENABLE_MPI
   boost::mpi::environment env(argc, argv);
   boost::mpi::communicator world;
 
@@ -105,6 +111,13 @@ int main(int argc, char* argv[]) {
       archive);
   TaskDistribution::MPITaskManager task_manager(world, handler, archive,
       unit_manager);
+#else
+  ObjectArchive<TaskDistribution::Key> archive;
+  archive.init("example.archive");
+  TaskDistribution::ComputingUnitManager unit_manager(archive);
+  TaskDistribution::TaskManager task_manager(archive, unit_manager);
+#endif
+
   FactorialRunnable runnable(argc, argv, archive, task_manager);
 
   runnable.process();

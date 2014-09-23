@@ -29,7 +29,10 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-add_subdirectory(lib/object-archive/lib/mpi_handler/src)
+if(ENABLE_MPI)
+  add_subdirectory(lib/object-archive/lib/mpi_handler/src)
+endif()
+
 add_subdirectory(example)
 add_subdirectory(src)
 add_subdirectory(test)
