@@ -323,15 +323,17 @@ namespace TaskDistribution {
   void Runnable::remove_result(Key const& task_key) {
     TaskEntry entry;
     archive_.load(task_key, entry);
-    archive_.remove(entry.result_key);
-    entry.result_key = Key();
-    archive_.insert(task_key, entry);
+    if (entry.result_key.is_valid()) {
+      archive_.remove(entry.result_key);
+      entry.result_key = Key();
+      archive_.insert(task_key, entry);
 
-    if (entry.children_key.is_valid()) {
-      KeySet children;
-      archive_.load(entry.children_key, children);
-      for (auto& child_key : children)
-        remove_result(child_key);
+      if (entry.children_key.is_valid()) {
+        KeySet children;
+        archive_.load(entry.children_key, children);
+        for (auto& child_key : children)
+          remove_result(child_key);
+      }
     }
   }
 
