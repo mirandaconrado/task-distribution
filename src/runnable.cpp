@@ -7,18 +7,19 @@ namespace TaskDistribution {
       TaskManager& task_manager):
     archive_(archive),
     task_manager_(task_manager),
-    cmd_args(""),
-    help_args(""),
-    invalidate_args("") {
-      cmd_args.add_options()
+    cmd_args_(""),
+    help_args_(""),
+    invalidate_args_("") {
+      // Create command line arguments
+      cmd_args_.add_options()
         ("command", po::value<std::string>(), "")
         ;
 
-      help_args.add_options()
+      help_args_.add_options()
         ("help,h", "show this help message")
         ;
 
-      invalidate_args.add_options()
+      invalidate_args_.add_options()
         ("invalid,i", po::value<std::string>(), "kind of task to invalidate")
         ;
 
@@ -26,12 +27,13 @@ namespace TaskDistribution {
       p.add("command", 1);
 
       po::options_description all("Allowed options");
-      all.add(cmd_args).add(help_args).add(invalidate_args);
+      all.add(cmd_args_).add(help_args_).add(invalidate_args_);
 
       po::store(po::command_line_parser(argc, argv).
-          options(all).positional(p).run(), vm);
-      po::notify(vm);
+          options(all).positional(p).run(), vm_);
+      po::notify(vm_);
 
+      // Set-up handlers
       task_manager_.set_task_creation_handler(
           std::bind(&Runnable::task_creation_handler, this,
             std::placeholders::_1, std::placeholders::_2));
@@ -42,17 +44,18 @@ namespace TaskDistribution {
           std::bind(&Runnable::task_end_handler, this,
             std::placeholders::_1));
 
+      // Loads the archive
       task_manager_.load_archive();
     }
 
   int Runnable::process() {
-    if (vm.count("command")) {
-      std::string cmd = vm["command"].as<std::string>();
+    if (vm_.count("command")) {
+      std::string cmd = vm_["command"].as<std::string>();
 
       if (cmd == "check") {
-        if (vm.count("help")) {
+        if (vm_.count("help")) {
           po::options_description allowed("Allowed options");
-          allowed.add(help_args);
+          allowed.add(help_args_);
           std::cout << allowed << std::endl;
           return 1;
         }
@@ -62,9 +65,9 @@ namespace TaskDistribution {
       }
 
       if (cmd == "clean") {
-        if (vm.count("help")) {
+        if (vm_.count("help")) {
           po::options_description allowed("Allowed options");
-          allowed.add(help_args);
+          allowed.add(help_args_);
           std::cout << allowed << std::endl;
           return 1;
         }
@@ -74,21 +77,21 @@ namespace TaskDistribution {
       }
 
       if (cmd == "invalidate") {
-        if (vm.count("help") || !vm.count("invalid")) {
+        if (vm_.count("help") || !vm_.count("invalid")) {
           po::options_description allowed("Allowed options");
-          allowed.add(help_args).add(invalidate_args);
+          allowed.add(help_args_).add(invalidate_args_);
           std::cout << allowed << std::endl;
           return 1;
         }
 
-        invalidate(vm["invalid"].as<std::string>());
+        invalidate(vm_["invalid"].as<std::string>());
         return 0;
       }
 
       if (cmd == "run") {
-        if (vm.count("help")) {
+        if (vm_.count("help")) {
           po::options_description allowed("Allowed options");
-          allowed.add(help_args);
+          allowed.add(help_args_);
           std::cout << allowed << std::endl;
           return 1;
         }
@@ -114,9 +117,30 @@ namespace TaskDistribution {
     return 1;
   }
 
+  void Runnable::create_unit_map() {
+    std::list<Key const*> key_list = archive_.available_objects();
+    std::vector<Key const*> key_vector(key_list.begin(), key_list.end());
+
+    std::sort(key_vector.begin(), key_vector.end(),
+        [](Key const* k1, Key const* k2) { return *k1 < *k2; });
+
+    // For each task, registers whether it has a result or not
+    for (auto& unit_entry : map_units_to_tasks_) {
+      for (auto& task_key : unit_entry.second.keys) {
+        TaskEntry task_entry;
+        archive_.load(task_key, task_entry);
+        if (task_entry.result_key.is_valid())
+          unit_entry.second.finished++;
+        else
+          unit_entry.second.waiting++;
+      }
+    }
+  }
+
   void Runnable::print_status() {
     size_t unit_name_len = 9, number_len = 8;
 
+    // Finds the required width for the numbers
     for (auto& it : map_units_to_tasks_) {
       unit_name_len = std::max(unit_name_len, it.first.size());
       size_t len = 0, size = it.second.keys.size();
@@ -131,10 +155,14 @@ namespace TaskDistribution {
       number_len = std::max(number_len, len);
     }
 
+    // Default padding between fiels is 4 spaces
     size_t padding = 4;
     std::string padding_str(padding, ' ');
 
+    // Line width
     size_t total_line_width = unit_name_len + number_len*3 + padding*3;
+
+    // Prints header
     std::cout << "Unit name" <<
       std::string(unit_name_len-strlen("Unit name"),' ') << padding_str
       <<
@@ -145,6 +173,7 @@ namespace TaskDistribution {
       "Running" << std::endl;
     std::cout << std::string(total_line_width, '-') << std::endl;
 
+    // Prints entries for each computing unit
     for (auto& it : map_units_to_tasks_) {
       char waiting_str[number_len+1], finished_str[number_len+1],
            running_str[number_len+1];
@@ -166,7 +195,7 @@ namespace TaskDistribution {
       return;
 
     create_tasks();
-    update_unit_map();
+    create_unit_map();
     print_status();
   }
 
@@ -176,7 +205,7 @@ namespace TaskDistribution {
 
     create_tasks();
     clean_tasks();
-    update_unit_map();
+    create_unit_map();
     print_status();
   }
 
@@ -186,50 +215,18 @@ namespace TaskDistribution {
 
     create_tasks();
     invalidate_unit(unit_name);
-    update_unit_map();
+    create_unit_map();
     print_status();
   }
 
   void Runnable::run() {
     create_tasks();
-    update_unit_map();
+    create_unit_map();
 
     task_manager_.run();
 
     if (task_manager_.id() == 0)
       process_results();
-  }
-
-  void Runnable::update_unit_map() {
-    std::list<Key const*> key_list = archive_.available_objects();
-    std::vector<Key const*> key_vector(key_list.begin(), key_list.end());
-
-    std::sort(key_vector.begin(), key_vector.end(),
-        [](Key const* k1, Key const* k2) { return *k1 < *k2; });
-
-    for (auto& unit_it : map_units_to_tasks_) {
-      auto unit_key_it = unit_it.second.keys.begin();
-      auto unit_key_end = unit_it.second.keys.end();
-      auto archive_key_it = key_vector.begin();
-      auto archive_key_end = key_vector.end();
-      while (unit_key_it != unit_key_end && archive_key_it != archive_key_end) {
-        if (*unit_key_it < **archive_key_it)
-          ++unit_key_it;
-        else if (*unit_key_it > **archive_key_it)
-          ++archive_key_it;
-        else {
-          TaskEntry task_entry;
-          archive_.load(*unit_key_it, task_entry);
-          if (task_entry.result_key.is_valid())
-            unit_it.second.finished++;
-          else
-            unit_it.second.waiting++;
-
-          ++unit_key_it;
-          ++archive_key_it;
-        }
-      }
-    }
   }
 
   void Runnable::task_creation_handler(std::string const& name,
@@ -238,6 +235,7 @@ namespace TaskDistribution {
   }
 
   void Runnable::task_begin_handler(Key const& key) {
+    // Finds the task and move it from waiting to running
     for (auto& unit_it : map_units_to_tasks_) {
       for (auto& it : unit_it.second.keys)
         if (it == key) {
@@ -250,6 +248,7 @@ namespace TaskDistribution {
   }
 
   void Runnable::task_end_handler(Key const& key) {
+    // Finds the task and move it from running to finished
     for (auto& unit_it : map_units_to_tasks_) {
       for (auto& it : unit_it.second.keys)
         if (it == key) {
@@ -262,10 +261,12 @@ namespace TaskDistribution {
   }
 
   void Runnable::clean_tasks() {
+    // Gets the tasks associated with all computing units
     KeySet created_tasks;
     for (auto& it : map_units_to_tasks_)
       created_tasks.insert(it.second.keys.begin(), it.second.keys.end());
 
+    // Gets all tasks in archive
     KeySet available_keys;
     for (auto& it : archive_.available_objects())
       if (it->type == Key::Task)
@@ -283,6 +284,8 @@ namespace TaskDistribution {
       if (*task_key_it < *archive_key_it)
         ++task_key_it;
       else if (*task_key_it > *archive_key_it) {
+        // As both sets are ordered, if the archive moved slower, it must have
+        // an old task
         tasks_removed += remove_task(*archive_key_it, possible_removals);
         ++archive_key_it;
       }
@@ -292,19 +295,24 @@ namespace TaskDistribution {
       }
     }
 
+    // Makes sure tasks at the end are removed also
     while (archive_key_it != archive_key_end) {
       tasks_removed += remove_task(*archive_key_it, possible_removals);
       ++archive_key_it;
     }
 
+    // Removes from the set of possible stuff to remove if they are used by the
+    // created tasks
     clean_possible_removals(possible_removals, created_tasks);
 
     printf("Removed %lu tasks and %lu other entries.\n\n", tasks_removed,
         possible_removals.size());
 
+    // Removes every entry possible
     for (auto& removal : possible_removals)
       archive_.remove(removal);
 
+    // Fills the empty places of old keys
     relocate_keys();
   }
 
@@ -316,6 +324,7 @@ namespace TaskDistribution {
 
     UnitEntry& unit_entry = map_units_to_tasks_[unit_name];
 
+    // Removes result of each task associated with the unit
     for (auto& task_key : unit_entry.keys)
       remove_result(task_key);
   }
@@ -323,6 +332,8 @@ namespace TaskDistribution {
   void Runnable::remove_result(Key const& task_key) {
     TaskEntry entry;
     archive_.load(task_key, entry);
+
+    // If result is invalid, children must also have invalid result
     if (entry.result_key.is_valid()) {
       archive_.remove(entry.result_key);
       entry.result_key = Key();
@@ -395,8 +406,8 @@ namespace TaskDistribution {
   }
 
   void Runnable::relocate_keys() {
+    // Gets all keys used and which tasks use them
     std::map<Key, KeySet> map_key_to_task_key;
-
     KeySet used_keys;
     for (auto& it : archive_.available_objects()) {
       if (it->type == Key::Task) {
@@ -422,17 +433,19 @@ namespace TaskDistribution {
       }
     }
 
-    size_t last_obj_id = 0;
+    size_t last_obj_id = 0; // One less than an avaliable key
     size_t current_node_id = 0;
 
     auto used_keys_it = used_keys.begin();
     auto used_keys_end = used_keys.end();
     while (used_keys_it != used_keys_end) {
+      // Checks if changed node id
       if (used_keys_it->node_id != current_node_id) {
         current_node_id = used_keys_it->node_id;
         last_obj_id = 0;
       }
 
+      // Tasks can't be moved
       if (used_keys_it->type == Key::Task) {
         ++used_keys_it;
         continue;
@@ -440,11 +453,14 @@ namespace TaskDistribution {
 
       // If there's a gap
       if (used_keys_it->obj_id - last_obj_id > 1) {
-        if (used_keys.find(Key({current_node_id, last_obj_id+1, Key::Task})) != used_keys.end()) {
+        // If the key is already in use, continue
+        if (used_keys.find(Key({current_node_id, last_obj_id+1, Key::Task})) !=
+            used_keys.end()) {
           last_obj_id++;
           continue;
         }
 
+        // Moves the data from the old key to the new key
         Key const& current_key = *used_keys_it;
         Key new_key({current_node_id, last_obj_id+1, current_key.type});
         std::string data;
@@ -452,6 +468,7 @@ namespace TaskDistribution {
         archive_.insert_raw(new_key, data);
         archive_.remove(current_key);
 
+        // Replaces the key in evey task entry used by it
         for (auto& task_key : map_key_to_task_key.at(current_key))
           replace_key(task_key, current_key, new_key);
 
@@ -460,6 +477,7 @@ namespace TaskDistribution {
         last_obj_id++;
         ++used_keys_it;
 
+        // Changes the key in the list of used ones
         used_keys.erase(used_keys_it_bak);
         used_keys.insert(new_key);
       }
