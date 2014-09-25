@@ -25,6 +25,7 @@ namespace TaskDistribution {
       void process_local(TaskEntry& task);
 
     private:
+      // Creates a new key of the given type.
       virtual Key new_key(Key::Type type);
 
       ObjectArchive<Key>& archive_;
