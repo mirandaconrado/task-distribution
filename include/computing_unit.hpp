@@ -9,13 +9,13 @@
 //
 // To create a new computing unit, inherit from ComputingUnit<T> like this:
 // class MyUnit: public ComputingUnit<MyUnit>
-// and provide the following inside the class:
+// and ensure the following rules:
 // 1) a constructor without arguments must be provided;
 // 2) the constructor must call ComputingUnit<MyUnit> with the desired unit's
 // name as argument;
 // 3) a const method operator() that performs the computation desired;
-// 4) if the object has any internal parameters, they user must create the
-// method serialize.
+// 4) if the object has any internal parameters, the user must create the method
+// serialize.
 //
 // Caveats:
 // 1) Only the return of operator() is considered as the result, so any changes
@@ -25,21 +25,14 @@
 // 3) operator() must be declared as const, to ensure no modifications are
 // performed.
 //
-// Besides these requirements, the user has control over the following options:
-// 1) whether the object must run on the master node, chosen through the method
-// "run_locally()". This should be used in case there is some restriction, like
-// file requirements or the operator() method is so fast that the communication
-// overhead isn't worth. The unit is allowed to run anywhere by default;
-// 2) whether the result should be saved to disk, through the method
-// "should_save()". For very simple units, it may not be necessary or even
-// desidered to save the result of the computation. The default is to save.
+// Besides these requirements, the user has control over whether the object must
+// run on the master node, chosen through the method "run_locally()". This
+// should be used in case there is some restriction, like file requirements or
+// the operator() method is so fast that the communication overhead isn't worth.
+// The unit is allowed to run anywhere by default.
 //
-// If an unit doesn't save its result, it's called again each time its result is
-// required. Therefore, an unit that must run locally must also save its result,
-// as other nodes wouldn't be able to run it or load its result.
-//
-// For an example of how to implement an unit, check the IdentityComputingUnit
-// below.
+// For an example of how to implement an unit, check code on
+// example/example.cpp.
 
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_HPP__
