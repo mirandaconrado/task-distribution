@@ -1,5 +1,5 @@
-// Everything is stored in an ObjectArchive and must use the same key. This file
-// defines the key.
+// Everything is stored in an ObjectArchive and must use the same key class.
+// This file defines this key.
 //
 // Each key is composed on the node that created it (0 if MPI is disabled) and a
 // unique object id, which can be obtained using the method "new_key".
@@ -8,7 +8,7 @@
 // integration of many different storage classes.
 //
 // By default, a key is considered invalid if the object associated with it has
-// id == 0.
+// id == 0 or its type is unknown.
 
 #ifndef __TASK_DISTRIBUTION__KEY_HPP__
 #define __TASK_DISTRIBUTION__KEY_HPP__
