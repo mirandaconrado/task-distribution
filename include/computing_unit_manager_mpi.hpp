@@ -10,11 +10,11 @@
 //
 // 1) The manager receives a task_begin tag, which indicates that it must run
 // the task locally. The task is computed using "process_local" and, after it
-// finished, the requesting node is notified.
+// finishes, the requesting node is notified.
 //
 // 2) The manager receives a task_end tag, which indicates that a task it
-// requested finished running. In this case, the manager updates the result key
-// in the task, which allows the result to be loaded.
+// requested finished running. In this case, the manager updates the list of
+// tasks finished.
 
 #ifndef __TASK_DISTRIBUTION__COMPUTING_UNIT_MANAGER_MPI_HPP__
 #define __TASK_DISTRIBUTION__COMPUTING_UNIT_MANAGER_MPI_HPP__
@@ -55,18 +55,20 @@ namespace TaskDistribution {
       void clear_tasks_ended();
 
     private:
+      // Creates a new key of the given type.
       virtual Key new_key(Key::Type type);
 
-      // Handlers for MPI tags
+      // Handlers for MPI tags.
       bool process_task_begin(int source, int tag);
       bool process_task_end(int source, int tag);
 
       boost::mpi::communicator& world_;
       MPIHandler& handler_;
       Tags tags_;
+
       // List of tasks that have ended by remotes
       TasksList tasks_ended_;
-      // List of tasks that a remote requested to be executed by this manager
+      // List of tasks that a remote requested to be executed by this node
       std::list<std::pair<TaskEntry,int>> tasks_requested_;
   };
 };
