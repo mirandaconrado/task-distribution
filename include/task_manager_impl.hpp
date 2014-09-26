@@ -18,6 +18,7 @@ namespace TaskDistribution {
   template <class Unit, class... Args>
   Task<typename CompileUtils::function_traits<Unit>::return_type>
   TaskManager::new_task(Unit const& computing_unit, Args const&... args) {
+    // Only create tasks on the master node
     if (id() != 0)
       return new_invalid_task(computing_unit);
 
@@ -44,7 +45,7 @@ namespace TaskDistribution {
         "Can't convert from arguments provided to expected."
     );
 
-    // Make tuples of normal arguments and task arguments
+    // Makes tuples of normal arguments and task arguments
     unit_args_tuple_type args_tuple(
         make_args_tuple<unit_args_tuple_type>(args...));
     args_tasks_tuple_type args_tasks_tuple(
@@ -89,7 +90,7 @@ namespace TaskDistribution {
 
     archive_.insert(task_entry.parents_key, parents);
 
-    // Check if task can be run now
+    // Check if task can and should be run now
     if (task_entry.active_parents == 0 && !task_entry.result_key.is_valid()) {
       bool found = false;
       for (auto& key : ready_) {
@@ -99,13 +100,14 @@ namespace TaskDistribution {
         }
       }
 
-      // If task doesn't exist already, tell everyone we have a new task
+      // If task doesn't exist already, add it to the list
       if (!found)
         ready_.push_back(task_key);
     }
 
     archive_.insert(task_key, task_entry);
 
+    // Informs the handler that a new task was created.
     task_creation_handler_(computing_unit.get_id(), task_key);
 
     return Task<
@@ -115,9 +117,11 @@ namespace TaskDistribution {
 
   template <class T>
   Task<T> TaskManager::new_identity_task(T const& arg) {
+    // Only create tasks on the master node
     if (id() != 0)
       return Task<T>(Key(), this);
 
+    // Creates a degenerate task that only has a result.
     Key result_key = get_key(arg, Key::Result);
     TaskEntry task_entry;
     task_entry.result_key = result_key;
@@ -157,7 +161,7 @@ namespace TaskDistribution {
           return it->second;
     }
 
-    // If no correct entry was found
+    // If no correct entry was found, create new key and store the data
     Key key = new_key(type);
     map_hash_to_key_.emplace(hash, key);
     archive_.insert_raw(key, std::move(data_str));
@@ -168,6 +172,8 @@ namespace TaskDistribution {
   void TaskManager::get_result(Key const& task_key, T& ret) {
     TaskEntry entry;
     archive_.load(task_key, entry);
+
+    // If the task hasn't been computed, compute it now.
     if (!entry.result_key.is_valid())
       unit_manager_.process_local(entry);
 
