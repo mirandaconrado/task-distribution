@@ -16,7 +16,7 @@
 // locally at the time of coercion.
 //
 // The operator() is provided and behaves like coercing, but some functions,
-// like printf, will give error because they don't explicit allows type
+// like printf, will give error because they don't implicitly perform type
 // conversion.
 
 #ifndef __TASK_DISTRIBUTION__TASK_HPP__
