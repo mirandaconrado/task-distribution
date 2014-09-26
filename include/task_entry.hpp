@@ -1,13 +1,13 @@
 // Each task has an entry in the ObjectArchive, which is described in this file.
 //
 // The entry is composed of a set of keys required to compute the task and get
-// its value. Additionally, flags "should_save" and "run_locally", the same in
-// ComputingUnit, are provided for faster and easier management, as the unit
-// would have to be loaded otherwise.
+// its value. Additionally, a flag "run_locally", the same in ComputingUnit, is
+// provided for faster and easier management, as the unit would have to be
+// loaded otherwise.
 //
 // As the id of the computing unit is required to call it, a key to it is stored
 // in the entry. This may lead to data duplication (all nodes can create
-// differente keys for the same id), but allows faster lookup and transmission.
+// different keys for the same id), but allows faster lookup and transmission.
 
 #ifndef __TASK_DISTRIBUTION__TASK_ENTRY_HPP__
 #define __TASK_DISTRIBUTION__TASK_ENTRY_HPP__
