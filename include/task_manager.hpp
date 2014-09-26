@@ -1,3 +1,34 @@
+// Every task must be created by a manager, that controls its execution. This
+// file describes the task manager.
+//
+// The user interfaces with the task manager in mainly 3 ways:
+// 1) creating new tasks;
+// 2) calling a method to run the tasks;
+// 3) calling a method to load tasks from the archive.
+//
+// Internally, the manager avoids as much data redundancy as it can, which may
+// allow faster execution because of less data transfer.
+//
+// As everything provided is serialized through boost, large arguments, such as
+// matrices, that are used by more than one task should be wrapped in a useless
+// task, called "identity task". This task just has the argument provided as its
+// result and can be used just like the original argument, but the object
+// doesn't need to be serialized, transmitted or stored multiple times.
+//
+// A task is created by just provind the computing unit that will process the
+// arguments and the arguments themselves.
+//
+// The user can provide handlers for 3 kinds of events:
+// 1) new task created;
+// 2) task started;
+// 3) task finished.
+// Each one of these handlers are called with the information associated with
+// the task. The first one, associated with task creation, is called multiple
+// times if the same task is created more than once.
+//
+// For an example of how to interact with the manager, check the file
+// example/example.cpp.
+
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_HPP__
 
@@ -10,11 +41,13 @@
 #include <functional>
 
 namespace TaskDistribution {
+  // Avoids some cyclic dependencies.
   template <class T> class Task;
   struct TaskEntry;
 
   class TaskManager {
     public:
+      // Handler types.
       typedef std::function<void (std::string const&, Key const&)>
         creation_handler_type;
       typedef std::function<void (Key const&)> action_handler_type;
@@ -45,6 +78,8 @@ namespace TaskDistribution {
       // Id of this manager, which is 0 for non-parallel approaches.
       virtual size_t id() const;
 
+      // Defines the user-provided handlers. The default behavior is to do
+      // nothing.
       void set_task_creation_handler(creation_handler_type handler);
       void clear_task_creation_handler();
 
@@ -54,21 +89,28 @@ namespace TaskDistribution {
       void set_task_end_handler(action_handler_type handler);
       void clear_task_end_handler();
 
+      // Loads all tasks stored in the archive provided. This should be called
+      // only once.
       void load_archive();
 
     protected:
+      // Creates an invalid task for a given computing unit.
       template <class Unit>
       Task<typename CompileUtils::function_traits<Unit>::return_type>
       new_invalid_task(Unit const& computing_unit);
 
-      // Runs locally until there are not more tasks
+      // Runs locally until there are not more tasks.
       void run_single();
 
-      // Processes the end of a task, evaluating if its children may run
+      // Processes the end of a task, evaluating if its children may run.
       void task_completed(Key const& task_key);
 
+      // Loads the string associated with a key to be hashed. This is required
+      // because task entries change and must be restored to their original
+      // states.
       std::string load_string_to_hash(Key const& key);
 
+      // Updates the keys used in the archive, so that new keys don't conflict.
       virtual void update_used_keys(std::map<int, size_t> const& used_keys);
 
       // Checks if the given data already has a local key. If it does, returns
