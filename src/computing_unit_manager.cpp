@@ -27,6 +27,7 @@ namespace TaskDistribution {
       unit = BaseComputingUnit::get_by_key(task.computing_unit_id_key);
     }
 
+    // Processes the task using the correct unit
     unit->execute(archive_, task, *this);
 
     archive_.insert(task.task_key, task);
