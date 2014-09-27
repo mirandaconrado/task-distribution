@@ -1,3 +1,6 @@
+// Every task must be created by a manager, that controls its execution. This
+// file describes the manager that allows them to be computed using MPI.
+
 #ifndef __TASK_DISTRIBUTION__TASK_MANAGER_MPI_HPP__
 #define __TASK_DISTRIBUTION__TASK_MANAGER_MPI_HPP__
 
@@ -11,11 +14,15 @@
 namespace TaskDistribution {
   class MPITaskManager: public TaskManager {
     public:
+      // Tags that the managers use to communicate. The user can provide his own
+      // values as long as they are differente and aren't used in any other
+      // place.
       struct Tags {
         int finish = 9;
         int key_update = 10;
       };
 
+      // Constructor with default tags.
       MPITaskManager(boost::mpi::communicator& world, MPIHandler& handler,
           MPIObjectArchive<Key>& archive,
           MPIComputingUnitManager& unit_manager);
@@ -48,12 +55,13 @@ namespace TaskDistribution {
 
       // Handler to MPI tag.
       bool process_finish(int source, int tag);
-
       bool process_key_update(int source, int tag);
 
       // Sends a finish tag to all other nodes.
       void broadcast_finish();
 
+      // Updates the keys used in the archive, so that new keys don't conflict,
+      // and sends relevant information for other nodes to update their keys.
       virtual void update_used_keys(std::map<int, size_t> const& used_keys);
 
       // Checks if the given data already has a local key. If it does, returns
@@ -71,6 +79,8 @@ namespace TaskDistribution {
       MPIObjectArchive<Key>& archive_;
       MPIComputingUnitManager& unit_manager_;
       bool finished_;
+
+      // Number of tasks allocated to each slave.
       std::vector<int> tasks_per_node_;
   };
 };
