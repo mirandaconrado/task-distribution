@@ -15,6 +15,7 @@ namespace TaskDistribution {
     world_(world),
     handler_(handler),
     tags_(tags) {
+      // Set-up handlers
       handler.insert(tags_.task_begin,
           std::bind(&MPIComputingUnitManager::process_task_begin, this,
             std::placeholders::_1, tags.task_begin));
@@ -27,14 +28,17 @@ namespace TaskDistribution {
     while (1) {
       handler_.run();
 
+      // Returns if no more tasks are required
       if (tasks_requested_.empty())
         break;
 
+      // Gets the first task and processes it
       auto task_description = tasks_requested_.front();
       tasks_requested_.pop_front();
 
       process_local(task_description.first);
 
+      // Send information back to requester saying the task has finished
       world_.isend(task_description.second, tags_.task_end,
           task_description.first.task_key);
     }
