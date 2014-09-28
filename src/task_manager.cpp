@@ -83,6 +83,7 @@ namespace TaskDistribution {
 
     std::hash<std::string> hasher;
 
+    // Keeps track of keys used inside the archive to avoid collision
     std::map<int, size_t> used_keys;
 
     for (auto key : archive_.available_objects()) {
