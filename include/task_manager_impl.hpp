@@ -132,6 +132,8 @@ namespace TaskDistribution {
     task_entry.task_key = task_key;
     archive_.insert(task_key, task_entry);
 
+    task_creation_handler_("identity", task_key);
+
     return Task<T>(task_key, this);
   }
 

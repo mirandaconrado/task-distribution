@@ -210,6 +210,11 @@ namespace TaskDistribution {
   }
 
   void Runnable::invalidate(std::string const& unit_name) {
+    if (unit_name == "identity") {
+      printf("Can't invalidate identity tasks.\n");
+      return;
+    }
+
     if (task_manager_.id() != 0)
       return;
 
@@ -355,10 +360,6 @@ namespace TaskDistribution {
 
     TaskEntry entry;
     archive_.load(task_key, entry);
-
-    // Identity task
-    if (!entry.computing_unit_id_key.is_valid())
-      return 0;
 
     size_t tasks_removed = 0;
 
