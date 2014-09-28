@@ -17,6 +17,7 @@ namespace TaskDistribution {
     unit_manager_(unit_manager),
     finished_(false),
     tasks_per_node_(world_.size()-1, 0) {
+      // Set-up handlers
       handler.insert(tags_.finish,
           std::bind(&MPITaskManager::process_finish, this,
             std::placeholders::_1, tags.finish));
@@ -29,6 +30,7 @@ namespace TaskDistribution {
       clear_task_begin_handler();
       clear_task_end_handler();
 
+      // Only stores things with valid keys and into the master
       archive_.set_insert_filter(
         [](Key const& key, boost::mpi::communicator& world)
         { return key.is_valid() && world.rank() == 0; });
