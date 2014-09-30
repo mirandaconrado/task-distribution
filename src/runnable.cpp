@@ -464,10 +464,7 @@ namespace TaskDistribution {
         // Moves the data from the old key to the new key
         Key const& current_key = *used_keys_it;
         Key new_key({current_node_id, last_obj_id+1, current_key.type});
-        std::string data;
-        archive_.load_raw(current_key, data);
-        archive_.insert_raw(new_key, data);
-        archive_.remove(current_key);
+        archive_.change_key(current_key, new_key);
 
         // Replaces the key in evey task entry used by it
         for (auto& task_key : map_key_to_task_key.at(current_key))
