@@ -18,8 +18,8 @@ namespace TaskDistribution {
       // values as long as they are differente and aren't used in any other
       // place.
       struct Tags {
-        int finish = 9;
-        int key_update = 10;
+        int finish = 10;
+        int key_update = 11;
       };
 
       // Constructor with default tags.

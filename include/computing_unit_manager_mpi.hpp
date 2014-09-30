@@ -32,8 +32,8 @@ namespace TaskDistribution {
       // values as long as they are differente and aren't used in any other
       // place.
       struct Tags {
-        int task_begin = 7;
-        int task_end = 8;
+        int task_begin = 8;
+        int task_end = 9;
       };
 
       typedef std::list<std::pair<Key, int>> TasksList;
